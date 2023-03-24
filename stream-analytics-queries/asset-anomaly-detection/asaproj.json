@@ -1,0 +1,10 @@
+{
+    "name": "asset-anomaly-detection",
+    "startFile": "asset-anomaly-detection.asaql",
+    "configurations": [
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}

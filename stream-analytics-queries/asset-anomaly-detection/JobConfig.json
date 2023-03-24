@@ -5,7 +5,7 @@
     "EventsLateArrivalMaxDelayInSeconds": 5,
     "EventsOutOfOrderMaxDelayInSeconds": 0,
     "EventsOutOfOrderPolicy": "Adjust",
-    "StreamingUnits": 1,
+    "StreamingUnits": 3,
     "CompatibilityLevel": "1.2",
     "UseSystemAssignedIdentity": false,
     "GlobalStorage": {

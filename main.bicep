@@ -57,6 +57,12 @@ var streamScenarioJobs = [
     referencePathPattern: 'sensorjobexecutions/sensorjobexecutions{date}T{time}.json'
     query: loadTextContent('stream-analytics-queries/production-job-delayed/production-job-delayed.asaql')
   }
+  {
+    scenario: 'asset-anomaly-detection'
+    referenceDataName: 'AssetSensorAnomalyParamsReferenceInput'
+    referencePathPattern: 'assetsensoranomalyparams/assetsensoranomalyparams{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/asset-anomaly-detection/asset-anomaly-detection.asaql')
+  }
 ]
 
 resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
