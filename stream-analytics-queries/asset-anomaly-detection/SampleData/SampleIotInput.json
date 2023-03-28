@@ -1,0 +1,248 @@
+[
+  {
+    "sensorId": "D1",
+    "value": 35250105,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:31.5720000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 26149060,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:31.3540000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 22504059,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:31.1350000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 30762236,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:30.9320000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34132534,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:30.7290000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34717956,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:30.5100000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34750597,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:30.2910000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34858252,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:30.0720000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 25557267,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:29.8540000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 22815534,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:29.6350000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 29494850,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:29.4160000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 32383350,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:29.1970000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33554483,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:28.9790000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33841228,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:28.7760000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 31957221,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:28.5570000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 22576956,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:28.3380000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 21244209,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:28.1190000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 25825128,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:27.9000000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 30744783,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:27.6820000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33423012,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:27.4630000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34250789,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:27.2440000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 35445003,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:27.0250000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 26530491,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.8070000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 24623684,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.6040000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34662949,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.3850000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 38144434,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.1660000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34212281,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.9470000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34468310,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.7290000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33631649,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.5100000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 25262514,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.3070000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 22676212,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.0880000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 29945555,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.8690000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33093515,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.6500000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33760076,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.5100000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33893888,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4940000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34010679,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4630000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 24629393,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4470000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 22681575,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4160000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 29881076,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4000000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33843985,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3690000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 32627350,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3380000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 32858923,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3220000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 33637661,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3070000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 25948736,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.2750000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 29615278,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.2600000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 22839355,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.2290000Z"
+  },
+  {
+    "sensorId": "D1",
+    "value": 34139159,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.1970000Z"
+  },
+  {
+    "sensorId": "D2",
+    "value": 34139,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.1970000Z"
+  },
+  {
+    "sensorId": "D2",
+    "value": 34139,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:28.1970000Z"
+  }
+]
+
