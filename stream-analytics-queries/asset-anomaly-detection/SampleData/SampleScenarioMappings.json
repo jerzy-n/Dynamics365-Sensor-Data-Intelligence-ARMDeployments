@@ -1,0 +1,12 @@
+[
+  {
+    "SensorId": "D1",
+    "Scenario": "AnomalyDetection",
+    "IsSensorActiveForScenario": "Yes"
+  },
+  {
+    "SensorId": "D2",
+    "Scenario": "AnomalyDetection",
+    "IsSensorActiveForScenario": "No"
+  }
+]
