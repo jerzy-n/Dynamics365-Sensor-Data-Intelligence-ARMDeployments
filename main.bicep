@@ -57,13 +57,35 @@ var streamScenarioJobs = [
     referencePathPattern: 'sensorjobexecutions/sensorjobexecutions{date}T{time}.json'
     query: loadTextContent('stream-analytics-queries/production-job-delayed/production-job-delayed.asaql')
   }
+]
+
+var streamAnomalyDetectionJobs = [
   {
-    scenario: 'asset-anomaly-detection'
+    scenario: 'asset-univariate-anomaly-detection'
     referenceDataName: 'AssetSensorAnomalyParamsReferenceInput'
     referencePathPattern: 'assetsensoranomalyparams/assetsensoranomalyparams{date}T{time}.json'
     query: loadTextContent('stream-analytics-queries/asset-anomaly-detection/asset-anomaly-detection.asaql')
+    anomalyDetectionJob: true
   }
 ]
+
+var deployAnomaly = length(streamAnomalyDetectionJobs) > 0
+
+output streamScenarioJobs array = concat(streamScenarioJobs, streamAnomalyDetectionJobs)
+
+resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployAnomaly) {
+  name: 'msdyn-iiot-sdi-anomaly-detector-${uniqueIdentifier}'
+  location: resourcesLocation
+  sku: {
+    name: 'F0'
+  }
+  kind: 'CognitiveServices'
+  properties: {
+    apiProperties: {
+      statisticsEnabled: false
+    }
+  }
+}
 
 resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
   name: 'msdyn-iiot-sdi-redis-${uniqueIdentifier}'
@@ -144,6 +166,23 @@ resource asaToDynamicsServiceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-pre
     properties: {
       enablePartitioning: false
       enableBatchedOperations: true
+    }
+  
+    resource asaSendAuthorizationRule 'authorizationRules' = {
+      name: 'AsaSendRule'
+      properties: {
+        rights: [
+          'Send'
+        ]
+      }
+    }
+  }
+
+  resource anomalyTasksQueue 'queues' = if (deployAnomaly) {
+    name: 'anomaly-tasks'
+    properties: {
+      enablePartitioning: false
+      enableBatchedOperations: false
     }
 
     resource asaSendAuthorizationRule 'authorizationRules' = {
@@ -335,7 +374,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
         }
       }
       {
-        name: 'NotificationOutput'
+        name: ((!contains(job, 'anomalyDetectionJob')) ? 'NotificationOutput' : 'ServiceBusOutput')
         properties: {
           datasource: {
             type: 'Microsoft.ServiceBus/Queue'
@@ -344,8 +383,8 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
               queueName: asaToDynamicsServiceBus::outboundInsightsQueue.name
               // ASA does not yet support 'Msi' authentication mode for Service Bus output
               authenticationMode: 'ConnectionString'
-              sharedAccessPolicyName: asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().keyName
-              sharedAccessPolicyKey: asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().primaryKey
+              sharedAccessPolicyName: ((!contains(job, 'anomalyDetectionJob')) ? asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().keyName : asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().keyName)
+              sharedAccessPolicyKey: ((!contains(job, 'anomalyDetectionJob')) ? asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().primaryKey : asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().primaryKey)
             }
           }
           serialization: {
