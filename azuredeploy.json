@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.15.31.15270",
-      "templateHash": "2732471949189069338"
+      "templateHash": "8252594852325411160"
     }
   },
   "parameters": {
@@ -189,9 +189,9 @@
       "name": "[format('msdyn-iiot-sdi-anomaly-detector-{0}', variables('uniqueIdentifier'))]",
       "location": "[variables('resourcesLocation')]",
       "sku": {
-        "name": "F"
+        "name": "F0"
       },
-      "kind": "CognitiveServices",
+      "kind": "AnomalyDetector",
       "properties": {
         "apiProperties": {
           "statisticsEnabled": false
