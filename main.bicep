@@ -77,7 +77,7 @@ resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if 
   name: 'msdyn-iiot-sdi-anomaly-detector-${uniqueIdentifier}'
   location: resourcesLocation
   sku: {
-    name: 'F0'
+    name: 'F'
   }
   kind: 'CognitiveServices'
   properties: {
