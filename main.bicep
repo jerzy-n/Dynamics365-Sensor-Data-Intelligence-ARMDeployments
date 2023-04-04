@@ -71,7 +71,7 @@ var streamAnomalyDetectionJobs = [
 
 var deployAnomaly = length(streamAnomalyDetectionJobs) > 0
 
-output streamScenarioJobs array = concat(streamScenarioJobs, streamAnomalyDetectionJobs)
+var allStreamScenarioJobs = concat(streamScenarioJobs, streamAnomalyDetectionJobs)
 
 resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployAnomaly) {
   name: 'msdyn-iiot-sdi-anomaly-detector-${uniqueIdentifier}'
@@ -119,7 +119,7 @@ resource existingIotHub 'Microsoft.Devices/IotHubs@2021-07-02' existing = if (!c
 }
 
 // One consumer group per Stream Analytics job
-resource iotHubConsumerGroups 'Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups@2021-07-02' = [for job in streamScenarioJobs: {
+resource iotHubConsumerGroups 'Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups@2021-07-02' = [for job in allStreamScenarioJobs: {
   name: '${createNewIotHub ? newIotHub.name : existingIotHub.name}/events/${job.scenario}'
   properties: {
     name: job.scenario
@@ -285,7 +285,7 @@ resource appDeploymentWait 'Microsoft.Resources/deploymentScripts@2020-10-01' = 
   }
 }
 
-resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview' = [for job in streamScenarioJobs: {
+resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview' = [for job in allStreamScenarioJobs: {
   // It is not possible to put an Azure Stream Analytics (ASA) job in a Virtual Network
   // without using a dedicated ASA cluster. ASA clusters have a higher base cost compared
   // to individual jobs, but should be considered for production- as it enables VNET isolation.
@@ -360,7 +360,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
       }
     ]
     outputs: [
-      {
+      !contains(job, 'anomalyDetectionJob') ? {
         name: 'MetricOutput'
         properties: {
           datasource: {
@@ -372,7 +372,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
             }
           }
         }
-      }
+      } : {}
       {
         name: ((!contains(job, 'anomalyDetectionJob')) ? 'NotificationOutput' : 'ServiceBusOutput')
         properties: {

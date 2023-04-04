@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.15.31.15270",
-      "templateHash": "3874618700399146127"
+      "templateHash": "6815752716413791172"
     }
   },
   "parameters": {
@@ -95,7 +95,8 @@
         "anomalyDetectionJob": true
       }
     ],
-    "deployAnomaly": "[greater(length(variables('streamAnomalyDetectionJobs')), 0)]"
+    "deployAnomaly": "[greater(length(variables('streamAnomalyDetectionJobs')), 0)]",
+    "allStreamScenarioJobs": "[concat(variables('streamScenarioJobs'), variables('streamAnomalyDetectionJobs'))]"
   },
   "resources": [
     {
@@ -226,13 +227,13 @@
     {
       "copy": {
         "name": "iotHubConsumerGroups",
-        "count": "[length(variables('streamScenarioJobs'))]"
+        "count": "[length(variables('allStreamScenarioJobs'))]"
       },
       "type": "Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups",
       "apiVersion": "2021-07-02",
-      "name": "[format('{0}/events/{1}', if(variables('createNewIotHub'), format('msdyn-iiot-sdi-iothub-{0}', variables('uniqueIdentifier')), parameters('existingIotHubName')), variables('streamScenarioJobs')[copyIndex()].scenario)]",
+      "name": "[format('{0}/events/{1}', if(variables('createNewIotHub'), format('msdyn-iiot-sdi-iothub-{0}', variables('uniqueIdentifier')), parameters('existingIotHubName')), variables('allStreamScenarioJobs')[copyIndex()].scenario)]",
       "properties": {
-        "name": "[variables('streamScenarioJobs')[copyIndex()].scenario]"
+        "name": "[variables('allStreamScenarioJobs')[copyIndex()].scenario]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Devices/IotHubs', format('msdyn-iiot-sdi-iothub-{0}', variables('uniqueIdentifier')))]"
@@ -341,11 +342,11 @@
     {
       "copy": {
         "name": "streamAnalyticsJobs",
-        "count": "[length(variables('streamScenarioJobs'))]"
+        "count": "[length(variables('allStreamScenarioJobs'))]"
       },
       "type": "Microsoft.StreamAnalytics/streamingjobs",
       "apiVersion": "2021-10-01-preview",
-      "name": "[format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[copyIndex()].scenario, variables('uniqueIdentifier'))]",
+      "name": "[format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[copyIndex()].scenario, variables('uniqueIdentifier'))]",
       "location": "[variables('resourcesLocation')]",
       "identity": {
         "type": "SystemAssigned"
@@ -368,7 +369,7 @@
                   "sharedAccessPolicyName": "[if(variables('createNewIotHub'), listkeys(resourceId('Microsoft.Devices/IotHubs', format('msdyn-iiot-sdi-iothub-{0}', variables('uniqueIdentifier'))), '2021-07-02').value[1].keyName, listkeys(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('existingIotHubResourceGroupName')), 'Microsoft.Devices/IotHubs', parameters('existingIotHubName')), '2021-07-02').value[1].keyName)]",
                   "sharedAccessPolicyKey": "[if(variables('createNewIotHub'), listkeys(resourceId('Microsoft.Devices/IotHubs', format('msdyn-iiot-sdi-iothub-{0}', variables('uniqueIdentifier'))), '2021-07-02').value[1].primaryKey, listkeys(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('existingIotHubResourceGroupName')), 'Microsoft.Devices/IotHubs', parameters('existingIotHubName')), '2021-07-02').value[1].primaryKey)]",
                   "endpoint": "messages/events",
-                  "consumerGroupName": "[variables('streamScenarioJobs')[copyIndex()].scenario]"
+                  "consumerGroupName": "[variables('allStreamScenarioJobs')[copyIndex()].scenario]"
                 }
               },
               "serialization": {
@@ -380,7 +381,7 @@
             }
           },
           {
-            "name": "[variables('streamScenarioJobs')[copyIndex()].referenceDataName]",
+            "name": "[variables('allStreamScenarioJobs')[copyIndex()].referenceDataName]",
             "properties": {
               "type": "Reference",
               "datasource": {
@@ -393,7 +394,7 @@
                     }
                   ],
                   "container": "sensorintelligencereferencedata",
-                  "pathPattern": "[variables('streamScenarioJobs')[copyIndex()].referencePathPattern]",
+                  "pathPattern": "[variables('allStreamScenarioJobs')[copyIndex()].referencePathPattern]",
                   "dateFormat": "yyyy-MM-dd",
                   "timeFormat": "HH-mm"
                 }
@@ -408,21 +409,9 @@
           }
         ],
         "outputs": [
+          "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), createObject('name', 'MetricOutput', 'properties', createObject('datasource', createObject('type', 'Microsoft.AzureFunction', 'properties', createObject('functionAppName', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')), 'functionName', 'AzureStreamAnalyticsToRedis', 'apiKey', listKeys(format('{0}/host/default', resourceId('Microsoft.Web/sites', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')))), '2021-02-01').functionKeys.default)))), createObject())]",
           {
-            "name": "MetricOutput",
-            "properties": {
-              "datasource": {
-                "type": "Microsoft.AzureFunction",
-                "properties": {
-                  "functionAppName": "[format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier'))]",
-                  "functionName": "AzureStreamAnalyticsToRedis",
-                  "apiKey": "[listKeys(format('{0}/host/default', resourceId('Microsoft.Web/sites', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')))), '2021-02-01').functionKeys.default]"
-                }
-              }
-            }
-          },
-          {
-            "name": "[if(not(contains(variables('streamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), 'NotificationOutput', 'ServiceBusOutput')]",
+            "name": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), 'NotificationOutput', 'ServiceBusOutput')]",
             "properties": {
               "datasource": {
                 "type": "Microsoft.ServiceBus/Queue",
@@ -430,8 +419,8 @@
                   "serviceBusNamespace": "[format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier'))]",
                   "queueName": "outbound-insights",
                   "authenticationMode": "ConnectionString",
-                  "sharedAccessPolicyName": "[if(not(contains(variables('streamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').keyName, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').keyName)]",
-                  "sharedAccessPolicyKey": "[if(not(contains(variables('streamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').primaryKey, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').primaryKey)]"
+                  "sharedAccessPolicyName": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').keyName, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').keyName)]",
+                  "sharedAccessPolicyKey": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').primaryKey, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').primaryKey)]"
                 }
               },
               "serialization": {
@@ -447,7 +436,7 @@
         "transformation": {
           "name": "input2output",
           "properties": {
-            "query": "[variables('streamScenarioJobs')[copyIndex()].query]"
+            "query": "[variables('allStreamScenarioJobs')[copyIndex()].query]"
           }
         }
       },
@@ -510,18 +499,18 @@
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2020-10-01-preview",
       "scope": "[format('Microsoft.Storage/storageAccounts/{0}', format('msdyniiotst{0}', variables('uniqueIdentifier')))]",
-      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', format('msdyniiotst{0}', variables('uniqueIdentifier'))), resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier'))), variables('azureStorageBlobDataContributorRoleId'))]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', format('msdyniiotst{0}', variables('uniqueIdentifier'))), resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier'))), variables('azureStorageBlobDataContributorRoleId'))]",
       "properties": {
         "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('azureStorageBlobDataContributorRoleId'))]",
-        "principalId": "[reference(resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier'))), '2021-10-01-preview', 'full').identity.principalId]",
+        "principalId": "[reference(resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier'))), '2021-10-01-preview', 'full').identity.principalId]",
         "principalType": "ServicePrincipal",
-        "description": "[format('For letting {0} read from the reference data Storage Account. Stream Analytics needs Contributor role to function, even if it only reads.', format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]"
+        "description": "[format('For letting {0} read from the reference data Storage Account. Stream Analytics needs Contributor role to function, even if it only reads.', format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', format('msdyniiotst{0}', variables('uniqueIdentifier')))]",
-        "[resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]",
-        "[resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]",
-        "[resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('streamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]"
+        "[resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]",
+        "[resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]",
+        "[resourceId('Microsoft.StreamAnalytics/streamingjobs', format('msdyn-iiot-sdi-{0}-{1}', variables('allStreamScenarioJobs')[range(0, length(variables('streamScenarioJobs')))[copyIndex()]].scenario, variables('uniqueIdentifier')))]"
       ]
     },
     {
@@ -730,10 +719,6 @@
     }
   ],
   "outputs": {
-    "streamScenarioJobs": {
-      "type": "array",
-      "value": "[concat(variables('streamScenarioJobs'), variables('streamAnomalyDetectionJobs'))]"
-    },
     "applicationId": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', format('msdyn-iiot-sdi-identity-{0}', variables('uniqueIdentifier'))), '2018-11-30').clientId]",
