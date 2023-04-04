@@ -1,11 +1,6 @@
-SELECT 
-    I.sensorId,
-    Collect(I.[dateTime]) as [timestamps],
-    Collect(I.opticalLFiltered) as [opticalLFiltered],
-    Collect(I.opticalRFiltered) as [opticalRFiltered],
-    Collect(I.pumpPressure) as [pumpPressure],
-    Collect(I.rotational) as [rotational],
-    Collect(I.vibrationHorizon) as [vibrationHorizon]
-INTO AnomalyDetectionFunction
-FROM IoTInput I TIMESTAMP BY I.[dateTime]
-GROUP BY I.sensorId, HoppingWindow(minute, 60, 10)
+SELECT
+Collect(I.value) AS [value],
+Collect(I.eventEnqueuedUtcTime) AS [timestamp]
+FROM IoTInput I TIMESTAMP BY I.eventEnqueuedUtcTime
+GROUP BY I.sensorId, SlidingWindow(second, 12)
+HAVING COUNT() > 12
