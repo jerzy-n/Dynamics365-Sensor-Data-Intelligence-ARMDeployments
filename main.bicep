@@ -359,8 +359,8 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
         }
       }
     ]
-    outputs: [
-      !contains(job, 'anomalyDetectionJob') ? {
+    outputs: !contains(job, 'anomalyDetectionJob') ? [
+      {
         name: 'MetricOutput'
         properties: {
           datasource: {
@@ -372,9 +372,9 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
             }
           }
         }
-      } : {}
+      }
       {
-        name: ((!contains(job, 'anomalyDetectionJob')) ? 'NotificationOutput' : 'ServiceBusOutput')
+        name: 'NotificationOutput'
         properties: {
           datasource: {
             type: 'Microsoft.ServiceBus/Queue'
@@ -395,8 +395,31 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
             }
           }
         }
-      }
-    ]
+      }] : [
+        {
+          name: 'AnomalyDetectionOutput'
+          properties: {
+            datasource: {
+              type: 'Microsoft.ServiceBus/Queue'
+              properties: {
+                serviceBusNamespace: asaToDynamicsServiceBus.name
+                queueName: asaToDynamicsServiceBus::outboundInsightsQueue.name
+                // ASA does not yet support 'Msi' authentication mode for Service Bus output
+                authenticationMode: 'ConnectionString'
+                sharedAccessPolicyName: asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().keyName
+                sharedAccessPolicyKey: asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().primaryKey
+              }
+            }
+            serialization: {
+              type: 'Json'
+              properties: {
+                encoding: 'UTF8'
+                format: 'Array'
+              }
+            }
+          }
+        }
+      ]
     transformation: {
       name: 'input2output'
       properties: {

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.15.31.15270",
-      "templateHash": "8252594852325411160"
+      "templateHash": "18126902088069064281"
     }
   },
   "parameters": {
@@ -408,31 +408,7 @@
             }
           }
         ],
-        "outputs": [
-          "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), createObject('name', 'MetricOutput', 'properties', createObject('datasource', createObject('type', 'Microsoft.AzureFunction', 'properties', createObject('functionAppName', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')), 'functionName', 'AzureStreamAnalyticsToRedis', 'apiKey', listKeys(format('{0}/host/default', resourceId('Microsoft.Web/sites', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')))), '2021-02-01').functionKeys.default)))), createObject())]",
-          {
-            "name": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), 'NotificationOutput', 'ServiceBusOutput')]",
-            "properties": {
-              "datasource": {
-                "type": "Microsoft.ServiceBus/Queue",
-                "properties": {
-                  "serviceBusNamespace": "[format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier'))]",
-                  "queueName": "outbound-insights",
-                  "authenticationMode": "ConnectionString",
-                  "sharedAccessPolicyName": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').keyName, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').keyName)]",
-                  "sharedAccessPolicyKey": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').primaryKey, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').primaryKey)]"
-                }
-              },
-              "serialization": {
-                "type": "Json",
-                "properties": {
-                  "encoding": "UTF8",
-                  "format": "Array"
-                }
-              }
-            }
-          }
-        ],
+        "outputs": "[if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), createArray(createObject('name', 'MetricOutput', 'properties', createObject('datasource', createObject('type', 'Microsoft.AzureFunction', 'properties', createObject('functionAppName', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')), 'functionName', 'AzureStreamAnalyticsToRedis', 'apiKey', listKeys(format('{0}/host/default', resourceId('Microsoft.Web/sites', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')))), '2021-02-01').functionKeys.default)))), createObject('name', 'NotificationOutput', 'properties', createObject('datasource', createObject('type', 'Microsoft.ServiceBus/Queue', 'properties', createObject('serviceBusNamespace', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'queueName', 'outbound-insights', 'authenticationMode', 'ConnectionString', 'sharedAccessPolicyName', if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').keyName, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').keyName), 'sharedAccessPolicyKey', if(not(contains(variables('allStreamScenarioJobs')[copyIndex()], 'anomalyDetectionJob')), listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule'), '2021-06-01-preview').primaryKey, listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').primaryKey))), 'serialization', createObject('type', 'Json', 'properties', createObject('encoding', 'UTF8', 'format', 'Array'))))), createArray(createObject('name', 'AnomalyDetectionOutput', 'properties', createObject('datasource', createObject('type', 'Microsoft.ServiceBus/Queue', 'properties', createObject('serviceBusNamespace', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'queueName', 'outbound-insights', 'authenticationMode', 'ConnectionString', 'sharedAccessPolicyName', listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').keyName, 'sharedAccessPolicyKey', listKeys(resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule'), '2021-06-01-preview').primaryKey)), 'serialization', createObject('type', 'Json', 'properties', createObject('encoding', 'UTF8', 'format', 'Array'))))))]",
         "transformation": {
           "name": "input2output",
           "properties": {
@@ -441,8 +417,8 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule')]",
         "[resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'outbound-insights', 'AsaSendRule')]",
+        "[resourceId('Microsoft.ServiceBus/namespaces/queues/authorizationRules', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')), 'anomaly-tasks', 'AsaSendRule')]",
         "[resourceId('Microsoft.ServiceBus/namespaces', format('msdyn-iiot-sdi-servicebus-{0}', variables('uniqueIdentifier')))]",
         "[resourceId('Microsoft.Web/sites', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')))]",
         "[resourceId('Microsoft.Web/sites/sourcecontrols', format('msdyn-iiot-sdi-functionapp-{0}', variables('uniqueIdentifier')), 'web')]",
