@@ -18,6 +18,8 @@ var azureServiceBusDataReceiverRoleId = '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0'
 
 var azureStorageBlobDataContributorRoleId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 
+var azureCognitiveServicesDataContributorRoleId = '25fbc0a9-bd7c-42a3-aa1a-3b75d497ee68'
+
 var trimmedEnvironmentUrl = trim(supplyChainManagementEnvironmentURL)
 
 var streamScenarioJobs = [
@@ -72,20 +74,6 @@ var streamAnomalyDetectionJobs = [
 var deployAnomaly = length(streamAnomalyDetectionJobs) > 0
 
 var allStreamScenarioJobs = concat(streamScenarioJobs, streamAnomalyDetectionJobs)
-
-resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployAnomaly) {
-  name: 'msdyn-iiot-sdi-anomaly-detector-${uniqueIdentifier}'
-  location: resourcesLocation
-  sku: {
-    name: 'F0'
-  }
-  kind: 'AnomalyDetector'
-  properties: {
-    apiProperties: {
-      statisticsEnabled: false
-    }
-  }
-}
 
 resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
   name: 'msdyn-iiot-sdi-redis-${uniqueIdentifier}'
@@ -179,7 +167,7 @@ resource asaToDynamicsServiceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-pre
   }
 
   resource anomalyTasksQueue 'queues' = if (deployAnomaly) {
-    name: 'anomaly-tasks'
+    name: 'anomaly-detection-queue'
     properties: {
       enablePartitioning: false
       enableBatchedOperations: false
@@ -434,6 +422,37 @@ resource sharedLogicAppIdentity 'Microsoft.ManagedIdentity/userAssignedIdentitie
   location: resourcesLocation
 }
 
+resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployAnomaly) {
+  name: 'msdyn-iiot-sdi-anomaly-detector-${uniqueIdentifier}'
+  location: resourcesLocation
+  sku: {
+    name: 'F0'
+  }
+  kind: 'AnomalyDetector'
+  identity: {
+    type:'UserAssigned'
+    userAssignedIdentities: {
+      '${sharedLogicAppIdentity.id}': {}
+    }
+  }
+  properties: {
+    apiProperties: {
+      statisticsEnabled: false
+    }
+  }
+}
+
+resource anomalyDetectorRoleAssingment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if (deployAnomaly) {
+  scope: anomalyDetector
+  name: guid(anomalyDetector.id, sharedLogicAppIdentity.id, azureCognitiveServicesDataContributorRoleId)
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureCognitiveServicesDataContributorRoleId)
+    principalId: sharedLogicAppIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+    description: 'For letting ${sharedLogicAppIdentity.name} using Anomaly Detector'
+  }
+}
+
 // Logic App currently does not support multiple user assigned managed identities,
 // so we use a single one for both communicating with the AOS and ServiceBus.
 resource serviceBusReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
@@ -642,6 +661,57 @@ resource notificationLogicApp 'Microsoft.Logic/workflows@2019-05-01' = {
       }
       EnvironmentUrl: {
         value: trimmedEnvironmentUrl
+      }
+    }
+    accessControl: {
+      contents: {
+        allowedCallerIpAddresses: [
+          {
+            // See https://aka.ms/tmt-th188 for details.
+            addressRange: '0.0.0.0-0.0.0.0'
+          }
+        ]
+      }
+    }
+  }
+}
+
+resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-01' = {
+  name: 'msdyn-iiot-sdi-uad-last-point-${uniqueIdentifier}'
+  location: resourcesLocation
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${sharedLogicAppIdentity.id}': {}
+    }
+  }
+  properties: {
+    definition: json(loadTextContent('logic-apps/univariate-anomaly-detection-last-point.json')).definition
+    parameters: {
+      '$connections': {
+        value: {
+          servicebus: {
+            id: subscriptionResourceId('Microsoft.Web/locations/managedApis', resourcesLocation, 'servicebus')
+            connectionId: logicApp2ServiceBusConnection.id
+            connectionName: 'servicebus'
+            connectionProperties: {
+              authentication: {
+                type: 'ManagedServiceIdentity'
+                identity: sharedLogicAppIdentity.id
+              }
+            }
+          }
+        }
+      }
+      AnomalyDetectorIdentityAuthentication: {
+        value: {
+          audience: anomalyDetector.properties.endpoint
+          identity: sharedLogicAppIdentity.id
+          type: 'ManagedServiceIdentity'
+        }
+      }
+      AnomalyDetectionEndpoint: {
+        value: anomalyDetector.properties.endpoint
       }
     }
     accessControl: {
