@@ -391,7 +391,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
               type: 'Microsoft.ServiceBus/Queue'
               properties: {
                 serviceBusNamespace: asaToDynamicsServiceBus.name
-                queueName: asaToDynamicsServiceBus::outboundInsightsQueue.name
+                queueName: asaToDynamicsServiceBus::anomalyTasksQueue.name
                 // ASA does not yet support 'Msi' authentication mode for Service Bus output
                 authenticationMode: 'ConnectionString'
                 sharedAccessPolicyName: asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().keyName

@@ -1,12 +1,20 @@
 [
   {
     "SensorId": "D1",
-    "Scenario": "AnomalyDetection",
-    "IsSensorActiveForScenario": "Yes"
+    "Scenario": "UnivariateAnomalyDetection",
+    "IsSensorActiveForScenario": "Yes",
+    "Sensitivity": 90.0
   },
   {
     "SensorId": "D2",
-    "Scenario": "AnomalyDetection",
-    "IsSensorActiveForScenario": "No"
+    "Scenario": "UnivariateAnomalyDetection",
+    "IsSensorActiveForScenario": "No",
+    "Sensitivity": 0.0
+  },
+  {
+    "SensorId": "D3",
+    "Scenario": "UnivariateAnomalyDetection",
+    "IsSensorActiveForScenario": "Yes",
+    "Sensitivity": 90.0
   }
 ]

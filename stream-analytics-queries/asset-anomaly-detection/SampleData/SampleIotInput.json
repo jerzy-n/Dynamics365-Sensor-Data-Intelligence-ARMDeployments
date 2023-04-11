@@ -243,6 +243,136 @@
     "sensorId": "D2",
     "value": 34139,
     "eventEnqueuedUtcTime": "2023-03-28T12:04:28.1970000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 35445003,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:27.0250000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 26530491,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.8070000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 24623684,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.6040000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 34662949,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.3850000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 38144434,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:26.1660000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 34212281,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.9470000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 34468310,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.7290000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 33631649,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.5100000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 25262514,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.3070000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 22676212,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:25.0880000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 29945555,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.8690000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 33093515,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.6500000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 33760076,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.5100000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 33893888,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4940000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 34010679,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4630000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 24629393,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4470000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 22681575,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4160000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 29881076,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.4000000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 33843985,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3690000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 32627350,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3380000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 32858923,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3220000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 33637661,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.3070000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 25948736,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.2750000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 29615278,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.2600000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 22839355,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.2290000Z"
+  },
+  {
+    "sensorId": "D3",
+    "value": 34139159,
+    "eventEnqueuedUtcTime": "2023-03-28T12:04:24.1970000Z"
   }
 ]
 

@@ -1,6 +1,86 @@
+CREATE TABLE IotInput(
+    eventEnqueuedUtcTime datetime,
+    sensorId nvarchar(max),
+    value float
+  );
+
+CREATE TABLE AssetSensorAnomalyParamsReferenceInput(
+    SensorId nvarchar(max),
+    Scenario nvarchar(max),
+    IsSensorActiveForScenario nvarchar(max),
+    Sensitivity float
+  );
+
+
+WITH Series AS (
+    SELECT
+    I.sensorId AS [sensorId],
+    -- R.Sensitivity AS [sensitivity],
+    System.Timestamp() AS [MyTimeStamp],
+    Collect(I.value) AS [value],
+    Collect(I.eventEnqueuedUtcTime) AS [timestamp]
+    FROM IoTInput I
+    TIMESTAMP BY I.eventEnqueuedUtcTime
+    -- JOIN AssetSensorAnomalyParamsReferenceInput
+    -- ON I.sensorId = R.SensorId
+    -- WHERE R.IsSensorActiveForScenario = 'YES'
+    -- WHERE I.SensorId = 'D1'
+    -- OR I.SensorId = 'D2'
+    GROUP BY I.sensorId, SlidingWindow(second, 12)
+    HAVING COUNT() > 12
+),
+SeriesFlatValues AS (
+    SELECT
+    S.[sensorId] AS [sensorId],
+    S.[timestamp] AS [timestamp],
+    S.[MyTimeStamp] AS [MyTimeStamp],
+    flatValues.ArrayValue AS [value],
+    flatValues.ArrayValue AS [valueIndex]
+    FROM Series S
+    CROSS APPLY GetArrayElements(value) AS flatValues
+),
+SeriesFlatTimestamps AS (
+    SELECT
+    SFV.[sensorId] AS [sensorId],
+    SFV.[value] AS [value],
+    SFV.[valueIndex] AS [valueIndex],
+    SFV.[MyTimeStamp] AS [MyTimeStamp],
+    flatTimestamps.ArrayValue AS [timestamp],
+    flatTimestamps.ArrayIndex AS [timestampIndex]
+    FROM SeriesFlatValues SFV
+    CROSS APPLY GetArrayElements(timestamp) AS flatTimestamps
+),
+Merged AS (
+  SELECT
+  SFT.[sensorId] AS [sensorId],
+  SFT.[MyTimeStamp] AS [MyTimeStamp],
+  SFT.[timestamp] AS [timestamp],
+  SFT.[value] AS [value],
+  CONCAT('{"timestamp":"', SFT.[timestamp], '","value":"', SFT.[value], '"}') AS point
+  FROM SeriesFlatTimestamps SFT
+),
+Casted AS (
+  SELECT
+  M.[sensorId] AS [sensorId],
+  M.[MyTimeStamp] AS [MyTimeStamp],
+  UDF.testFunction(M.point) AS point
+  FROM Merged M
+)
+
 SELECT
-Collect(I.value) AS [value],
-Collect(I.eventEnqueuedUtcTime) AS [timestamp]
-FROM IoTInput I TIMESTAMP BY I.eventEnqueuedUtcTime
-GROUP BY I.sensorId, SlidingWindow(second, 12)
-HAVING COUNT() > 12
+C.[sensorId] AS [sensorId],
+COLLECT(point) AS [series]
+INTO AnomalyDetectionOutput
+FROM Casted C
+GROUP BY C.[sensorId], System.Timestamp()
+
+
+
+
+-- SELECT
+-- Collect(I.value) AS [value],
+-- Collect(I.eventEnqueuedUtcTime) AS [timestamp]
+-- INTO AnomalyDetectionOutput
+-- FROM IoTInput I TIMESTAMP BY I.eventEnqueuedUtcTime
+-- GROUP BY I.sensorId, SlidingWindow(second, 12)
+-- HAVING COUNT() > 12

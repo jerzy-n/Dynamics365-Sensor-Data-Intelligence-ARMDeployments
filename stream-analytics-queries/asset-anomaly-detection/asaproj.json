@@ -13,6 +13,10 @@
         {
             "filePath": "Inputs/Local_ScenarioMappings.json",
             "subType": "InputMock"
+        },
+        {
+            "filePath": "Functions/testFunction.js.json",
+            "subType": "JSFunction"
         }
     ]
 }
