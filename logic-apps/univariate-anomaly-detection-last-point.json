@@ -54,6 +54,14 @@
       "$connections": {
         "defaultValue": {},
         "type": "Object"
+      },
+      "AnomalyDetectorIdentityAuthentication": {
+        "defaultValue": {},
+        "type": "Object"
+      },
+      "AnomalyDetectionEndpoint": {
+        "defaultValue": "",
+        "type": "string"
       }
     },
     "triggers": {

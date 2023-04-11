@@ -347,7 +347,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
         }
       }
     ]
-    outputs: !contains(job, 'anomalyDetectionJob') ? [
+    outputs: (!contains(job, 'anomalyDetectionJob')) ? [
       {
         name: 'MetricOutput'
         properties: {
@@ -371,8 +371,8 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
               queueName: asaToDynamicsServiceBus::outboundInsightsQueue.name
               // ASA does not yet support 'Msi' authentication mode for Service Bus output
               authenticationMode: 'ConnectionString'
-              sharedAccessPolicyName: ((!contains(job, 'anomalyDetectionJob')) ? asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().keyName : asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().keyName)
-              sharedAccessPolicyKey: ((!contains(job, 'anomalyDetectionJob')) ? asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().primaryKey : asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().primaryKey)
+              sharedAccessPolicyName: asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().keyName
+              sharedAccessPolicyKey: asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().primaryKey
             }
           }
           serialization: {
