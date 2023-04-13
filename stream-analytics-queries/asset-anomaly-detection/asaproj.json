@@ -15,7 +15,7 @@
             "subType": "InputMock"
         },
         {
-            "filePath": "Functions/testFunction.js.json",
+            "filePath": "Functions/pointToObject.js.json",
             "subType": "JSFunction"
         }
     ]

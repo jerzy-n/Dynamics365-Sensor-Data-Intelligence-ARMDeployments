@@ -2,6 +2,47 @@
   "definition": {
     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
     "actions": {
+      "Condition": {
+        "actions": {
+          "HTTP": {
+            "inputs": {
+              "authentication": "@parameters('DynamicsIdentityAuthentication')",
+              "method": "GET",
+              "uri": "@{parameters('EnvironmentUrl')}data/AnomalyDetectionParams"
+            },
+            "runAfter": {},
+            "type": "Http"
+          }
+        },
+        "else": {
+          "actions": {
+            "Set_variable": {
+              "inputs": {
+                "name": "newAssetUnivariateAnomalyDetectionScenarioRefData",
+                "value": "[]"
+              },
+              "runAfter": {},
+              "type": "SetVariable"
+            }
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@empty(body('FilterAssetUnivariateAnomalyDetectionScenario'))",
+                "@false"
+              ]
+            }
+          ]
+        },
+        "runAfter": {
+          "NewAssetUnivariateAnomalyDetectionScenarioRefData": [
+            "Succeeded"
+          ]
+        },
+        "type": "If"
+      },
       "CreateAssetDowntimeScenarioRefDataBlob": {
         "inputs": {
           "variables": [
@@ -132,6 +173,18 @@
         "inputs": {
           "from": "@body('ParseScenarioSensorMappings')?['value']",
           "where": "@equals(item()['Scenario'], 'AssetMonitor')"
+        },
+        "runAfter": {
+          "ParseScenarioSensorMappings": [
+            "Succeeded"
+          ]
+        },
+        "type": "Query"
+      },
+      "FilterAssetUnivariateAnomalyDetectionScenario": {
+        "inputs": {
+          "from": "@body('ParseScenarioSensorMappings')?['value']",
+          "where": "@equals(item()?['Scenario'], 'AssetUnivariateAnomalyDetectionScenario')"
         },
         "runAfter": {
           "ParseScenarioSensorMappings": [
@@ -302,6 +355,28 @@
         },
         "type": "ApiConnection"
       },
+      "GetLatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/GetFileContentByPath",
+          "queries": {
+            "inferContentType": true,
+            "path": "sensorintelligencereferencedata/scenarios/assetunivariateanomalydetection.json",
+            "queryParametersSingleEncoded": true
+          }
+        },
+        "runAfter": {
+          "Condition": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
       "GetLatestEquipmentDowntimeScenarioRefData": {
         "inputs": {
           "host": {
@@ -428,6 +503,26 @@
         },
         "type": "ApiConnection"
       },
+      "GetLatestUnivariateAnomalyDetectionScenarioRefData": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files/@{encodeURIComponent(encodeURIComponent(variables('latestAssetUnivariateAnomalyDetectionScenarioRefDataPointer')))}/content",
+          "queries": {
+            "inferContentType": true
+          }
+        },
+        "runAfter": {
+          "SetLatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
       "GetScenarioSensorMappings": {
         "inputs": {
           "authentication": "@parameters('DynamicsIdentityAuthentication')",
@@ -546,13 +641,13 @@
                         "CounterLowerThresholdValue": {
                           "type": "integer"
                         },
+                        "CounterName": {
+                          "type": "string"
+                        },
                         "CounterUpperThresholdValue": {
                           "type": "integer"
                         },
                         "SensorId": {
-                          "type": "string"
-                        },
-                        "CounterName": {
                           "type": "string"
                         }
                       },
@@ -752,6 +847,10 @@
                         "JobId": {
                           "type": "string"
                         },
+                        "JobLastRegistrationDateTime": {
+                          "format": "datetime",
+                          "type": "string"
+                        },
                         "JobRegistrationStartDateTime": {
                           "format": "datetime",
                           "type": "string"
@@ -773,10 +872,6 @@
                           "type": "string"
                         },
                         "SensorId": {
-                          "type": "string"
-                        },
-                        "JobLastRegistrationDateTime": {
-                          "format": "datetime",
                           "type": "string"
                         }
                       },
@@ -883,6 +978,9 @@
                           "format": "datetime",
                           "type": "string"
                         },
+                        "OrderId": {
+                          "type": "string"
+                        },
                         "ProcessingTimeInHours": {
                           "type": "number"
                         },
@@ -893,9 +991,6 @@
                           "type": "number"
                         },
                         "SensorId": {
-                          "type": "string"
-                        },
-                        "OrderId": {
                           "type": "string"
                         }
                       },
@@ -1225,6 +1320,93 @@
         },
         "type": "If"
       },
+      "IfNeedsToCreateAssetUnivariateAnomalyDetectionScenarioRefDataBlob": {
+        "actions": {
+          "CreateUnivariateAnomalyDetectionJobsBlob": {
+            "inputs": {
+              "body": "@variables('newAssetUnivariateAnomalyDetectionScenarioRefData')",
+              "headers": {
+                "ReadFileMetadataFromServer": true
+              },
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azureblob']['connectionId']"
+                }
+              },
+              "method": "post",
+              "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files",
+              "queries": {
+                "folderPath": "sensorintelligencereferencedata/univariateanomalydetectionjobs",
+                "name": "@{concat('univariateanomalydetectionjobs', utcNow('yyyy-MM-ddTHH-mm'), '.json')}",
+                "queryParametersSingleEncoded": true
+              }
+            },
+            "runAfter": {},
+            "runtimeConfiguration": {
+              "contentTransfer": {
+                "transferMode": "Chunked"
+              }
+            },
+            "type": "ApiConnection"
+          },
+          "CreateUnivariateAnomalyDetectionScenarioRefData": {
+            "inputs": {
+              "body": "@body('CreateUnivariateAnomalyDetectionJobsBlob')?['Path']",
+              "headers": {
+                "ReadFileMetadataFromServer": true
+              },
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azureblob']['connectionId']"
+                }
+              },
+              "method": "post",
+              "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files",
+              "queries": {
+                "folderPath": "sensorintelligencereferencedata/scenarios",
+                "name": "univariateanomalydetection.json",
+                "queryParametersSingleEncoded": true
+              }
+            },
+            "runAfter": {
+              "CreateUnivariateAnomalyDetectionJobsBlob": [
+                "Succeeded"
+              ]
+            },
+            "runtimeConfiguration": {
+              "contentTransfer": {
+                "transferMode": "Chunked"
+              }
+            },
+            "type": "ApiConnection"
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@variables('createAssetUnivariateAnomalyDetectionScenarioRefDataBlob')",
+                "@true"
+              ]
+            }
+          ]
+        },
+        "runAfter": {
+          "SetAssetUADScenarioRefDataBlobBecauseRefDataPointerDoesNotExist": [
+            "Succeeded",
+            "Skipped"
+          ],
+          "SetCreateAssetUADScenarioRefDataBlobBecauseRefDataDoesNotExist": [
+            "Succeeded",
+            "Skipped"
+          ],
+          "SetCreateAssetUnivariateAnomalyDetectionScenarioRefDataBlobIfRefDataChanged": [
+            "Succeeded",
+            "Skipped"
+          ]
+        },
+        "type": "If"
+      },
       "IfNeedsToCreateEquipmentDowntimeScenarioRefDataBlob": {
         "actions": {
           "CreateEquipmentDowntimeScenarioRefData": {
@@ -1471,15 +1653,15 @@
           ]
         },
         "runAfter": {
+          "SetCreateProductionJobDelayedScenarioRefDataBecauseRefDataPointerDoesNotExist": [
+            "Succeeded",
+            "Skipped"
+          ],
           "SetCreateProductionJobDelayedScenarioRefDataBlobBecauseRefDataDoesNotExist": [
             "Succeeded",
             "Skipped"
           ],
           "SetCreateProductionJobDelayedScenarioRefDataBlobIfRefDataChanged": [
-            "Succeeded",
-            "Skipped"
-          ],
-          "SetCreateProductionJobDelayedScenarioRefDataBecauseRefDataPointerDoesNotExist": [
             "Succeeded",
             "Skipped"
           ]
@@ -1577,6 +1759,55 @@
         },
         "runAfter": {
           "FilterAssetMonitorScenario": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
+      "LatestAssetUnivariateAnomalyDetectionScenarioRefData": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "latestAssetUnivariateAnomalyDetectionScenarioRefData",
+              "type": "string"
+            }
+          ]
+        },
+        "runAfter": {
+          "LatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
+      "LatestAssetUnivariateAnomalyDetectionScenarioRefDataBlob": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "createAssetUnivariateAnomalyDetectionScenarioRefDataBlob",
+              "type": "boolean",
+              "value": "@false"
+            }
+          ]
+        },
+        "runAfter": {
+          "LatestAssetUnivariateAnomalyDetectionScenarioRefData": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
+      "LatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "latestAssetUnivariateAnomalyDetectionScenarioRefDataPointer",
+              "type": "string"
+            }
+          ]
+        },
+        "runAfter": {
+          "FilterAssetUnivariateAnomalyDetectionScenario": [
             "Succeeded"
           ]
         },
@@ -1727,6 +1958,22 @@
         },
         "type": "InitializeVariable"
       },
+      "NewAssetUnivariateAnomalyDetectionScenarioRefData": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "newAssetUnivariateAnomalyDetectionScenarioRefData",
+              "type": "string"
+            }
+          ]
+        },
+        "runAfter": {
+          "LatestAssetUnivariateAnomalyDetectionScenarioRefDataBlob": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
       "NewEquipmentDowntimeScenarioRefData": {
         "inputs": {
           "variables": [
@@ -1812,6 +2059,18 @@
           ]
         },
         "type": "ParseJson"
+      },
+      "SetAssetUADScenarioRefDataBlobBecauseRefDataPointerDoesNotExist": {
+        "inputs": {
+          "name": "createAssetUnivariateAnomalyDetectionScenarioRefDataBlob",
+          "value": "@true"
+        },
+        "runAfter": {
+          "GetLatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": [
+            "Failed"
+          ]
+        },
+        "type": "SetVariable"
       },
       "SetCreateAssetDowntimeScenarioRefDataBlobBecauseRefDataDoesNotExist": {
         "inputs": {
@@ -1921,6 +2180,30 @@
         },
         "type": "SetVariable"
       },
+      "SetCreateAssetUADScenarioRefDataBlobBecauseRefDataDoesNotExist": {
+        "inputs": {
+          "name": "createAssetUnivariateAnomalyDetectionScenarioRefDataBlob",
+          "value": "@true"
+        },
+        "runAfter": {
+          "GetLatestUnivariateAnomalyDetectionScenarioRefData": [
+            "Failed"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetCreateAssetUnivariateAnomalyDetectionScenarioRefDataBlobIfRefDataChanged": {
+        "inputs": {
+          "name": "createAssetUnivariateAnomalyDetectionScenarioRefDataBlob",
+          "value": "@not(equals(variables('newAssetUnivariateAnomalyDetectionScenarioRefData'), variables('latestAssetUnivariateAnomalyDetectionScenarioRefData')))"
+        },
+        "runAfter": {
+          "SetLatestAssetUnivariateAnomalyDetectionScenarioRefData": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
       "SetCreateEquipmentDowntimeScenarioRefDataBlobBecauseRefDataDoesNotExist": {
         "inputs": {
           "name": "createEquipmentDowntimeScenarioRefDataBlob",
@@ -1993,6 +2276,18 @@
         },
         "type": "SetVariable"
       },
+      "SetCreateProductionJobDelayedScenarioRefDataBecauseRefDataPointerDoesNotExist": {
+        "inputs": {
+          "name": "createProductionJobDelayedScenarioRefDataBlob",
+          "value": "@true"
+        },
+        "runAfter": {
+          "GetLatestProductionJobDelayedScenarioRefDataPointer": [
+            "Failed"
+          ]
+        },
+        "type": "SetVariable"
+      },
       "SetCreateProductionJobDelayedScenarioRefDataBlobBecauseRefDataDoesNotExist": {
         "inputs": {
           "name": "createProductionJobDelayedScenarioRefDataBlob",
@@ -2013,18 +2308,6 @@
         "runAfter": {
           "SetLatestProductionJobDelayedScenarioRefData": [
             "Succeeded"
-          ]
-        },
-        "type": "SetVariable"
-      },
-      "SetCreateProductionJobDelayedScenarioRefDataBecauseRefDataPointerDoesNotExist": {
-        "inputs": {
-          "name": "createProductionJobDelayedScenarioRefDataBlob",
-          "value": "@true"
-        },
-        "runAfter": {
-          "GetLatestProductionJobDelayedScenarioRefDataPointer": [
-            "Failed"
           ]
         },
         "type": "SetVariable"
@@ -2096,6 +2379,30 @@
         },
         "runAfter": {
           "GetLatestAssetMonitorScenarioRefDataPointer": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetLatestAssetUnivariateAnomalyDetectionScenarioRefData": {
+        "inputs": {
+          "name": "latestAssetUnivariateAnomalyDetectionScenarioRefData",
+          "value": "@{body('GetLatestUnivariateAnomalyDetectionScenarioRefData')}"
+        },
+        "runAfter": {
+          "GetLatestUnivariateAnomalyDetectionScenarioRefData": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetLatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": {
+        "inputs": {
+          "name": "latestAssetUnivariateAnomalyDetectionScenarioRefDataPointer",
+          "value": "@{body('GetLatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer')}"
+        },
+        "runAfter": {
+          "GetLatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": [
             "Succeeded"
           ]
         },

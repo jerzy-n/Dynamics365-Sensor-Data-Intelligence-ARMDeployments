@@ -7,6 +7,9 @@ param existingIotHubResourceGroupName string = ''
 @description('(Optional) Resource name of an Azure IoT Hub to reuse.')
 param existingIotHubName string = ''
 
+@description('(Optional) Custom domain name for anomaly detector.')
+param customAnomalyDetectorDomainName string = ''
+
 #disable-next-line no-loc-expr-outside-params
 var resourcesLocation = resourceGroup().location
 
@@ -16,49 +19,51 @@ var createNewIotHub = empty(existingIotHubName)
 
 var azureServiceBusDataReceiverRoleId = '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0'
 
+var azureServiceBusDataSenderRoleId = '69a216fc-b8fb-44d8-bc22-1f3c2cd27a39'
+
 var azureStorageBlobDataContributorRoleId = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 
-var azureCognitiveServicesDataContributorRoleId = '25fbc0a9-bd7c-42a3-aa1a-3b75d497ee68'
+var azureCognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 
 var trimmedEnvironmentUrl = trim(supplyChainManagementEnvironmentURL)
 
 var streamScenarioJobs = [
-  {
-    scenario: 'asset-downtime'
-    referenceDataName: 'AssetSensorDowntimeThresholdsReferenceInput'
-    referencePathPattern: 'assetsensordowntimethresholds/assetsensordowntimethresholds{date}T{time}.json'
-    query: loadTextContent('stream-analytics-queries/asset-downtime/asset-downtime.asaql')
-  }
-  {
-    scenario: 'asset-maintenance'
-    referenceDataName: 'ScenarioMappings'
-    referencePathPattern: 'assetmaintenancedata/assetmaintenance{date}T{time}.json'
-    query: loadTextContent('stream-analytics-queries/asset-maintenance/asset-maintenance.asaql')
-  }
-  {
-    scenario: 'asset-monitor'
-    referenceDataName: 'AssetSensorMonitorThresholdsReferenceInput'
-    referencePathPattern: 'assetsensormonitorthresholds/assetsensormonitorthresholds{date}T{time}.json'
-    query: loadTextContent('stream-analytics-queries/asset-monitor/asset-monitor.asaql')
-  }
-  {
-    scenario: 'machine-reporting-status'
-    referenceDataName: 'SensorJobsReferenceInput'
-    referencePathPattern: 'sensorjobs/sensorjobs{date}T{time}.json'
-    query: loadTextContent('stream-analytics-queries/machine-reporting-status/machine-reporting-status.asaql')
-  }
-  {
-    scenario: 'product-quality-validation'
-    referenceDataName: 'SensorJobItemBatchAttributeReferenceInput'
-    referencePathPattern: 'sensorjobbatchattributes/sensorjobitembatchattributemappings{date}T{time}.json'
-    query: loadTextContent('stream-analytics-queries/product-quality-validation/product-quality-validation.asaql')
-  }
-  {
-    scenario: 'production-job-delayed'
-    referenceDataName: 'SensorJobExecutionsReferenceInput'
-    referencePathPattern: 'sensorjobexecutions/sensorjobexecutions{date}T{time}.json'
-    query: loadTextContent('stream-analytics-queries/production-job-delayed/production-job-delayed.asaql')
-  }
+  // {
+  //   scenario: 'asset-downtime'
+  //   referenceDataName: 'AssetSensorDowntimeThresholdsReferenceInput'
+  //   referencePathPattern: 'assetsensordowntimethresholds/assetsensordowntimethresholds{date}T{time}.json'
+  //   query: loadTextContent('stream-analytics-queries/asset-downtime/asset-downtime.asaql')
+  // }
+  // {
+  //   scenario: 'asset-maintenance'
+  //   referenceDataName: 'ScenarioMappings'
+  //   referencePathPattern: 'assetmaintenancedata/assetmaintenance{date}T{time}.json'
+  //   query: loadTextContent('stream-analytics-queries/asset-maintenance/asset-maintenance.asaql')
+  // }
+  // {
+  //   scenario: 'asset-monitor'
+  //   referenceDataName: 'AssetSensorMonitorThresholdsReferenceInput'
+  //   referencePathPattern: 'assetsensormonitorthresholds/assetsensormonitorthresholds{date}T{time}.json'
+  //   query: loadTextContent('stream-analytics-queries/asset-monitor/asset-monitor.asaql')
+  // }
+  // {
+  //   scenario: 'machine-reporting-status'
+  //   referenceDataName: 'SensorJobsReferenceInput'
+  //   referencePathPattern: 'sensorjobs/sensorjobs{date}T{time}.json'
+  //   query: loadTextContent('stream-analytics-queries/machine-reporting-status/machine-reporting-status.asaql')
+  // }
+  // {
+  //   scenario: 'product-quality-validation'
+  //   referenceDataName: 'SensorJobItemBatchAttributeReferenceInput'
+  //   referencePathPattern: 'sensorjobbatchattributes/sensorjobitembatchattributemappings{date}T{time}.json'
+  //   query: loadTextContent('stream-analytics-queries/product-quality-validation/product-quality-validation.asaql')
+  // }
+  // {
+  //   scenario: 'production-job-delayed'
+  //   referenceDataName: 'SensorJobExecutionsReferenceInput'
+  //   referencePathPattern: 'sensorjobexecutions/sensorjobexecutions{date}T{time}.json'
+  //   query: loadTextContent('stream-analytics-queries/production-job-delayed/production-job-delayed.asaql')
+  // }
 ]
 
 var streamAnomalyDetectionJobs = [
@@ -67,11 +72,12 @@ var streamAnomalyDetectionJobs = [
     referenceDataName: 'AssetSensorAnomalyParamsReferenceInput'
     referencePathPattern: 'assetsensoranomalyparams/assetsensoranomalyparams{date}T{time}.json'
     query: loadTextContent('stream-analytics-queries/asset-anomaly-detection/asset-anomaly-detection.asaql')
+    udfScript: loadTextContent('stream-analytics-queries/asset-anomaly-detection/Functions/pointToObject.js')
     anomalyDetectionJob: true
   }
 ]
 
-var deployAnomaly = length(streamAnomalyDetectionJobs) > 0
+var deployAnomalyDetectionResources = length(streamAnomalyDetectionJobs) > 0
 
 var allStreamScenarioJobs = concat(streamScenarioJobs, streamAnomalyDetectionJobs)
 
@@ -166,7 +172,7 @@ resource asaToDynamicsServiceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-pre
     }
   }
 
-  resource anomalyTasksQueue 'queues' = if (deployAnomaly) {
+  resource anomalyTasksQueue 'queues' = if (deployAnomalyDetectionResources) {
     name: 'anomaly-detection-queue'
     properties: {
       enablePartitioning: false
@@ -385,6 +391,19 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
         }
       }] : [
         {
+          name: 'MetricOutput'
+          properties: {
+            datasource: {
+              type: 'Microsoft.AzureFunction'
+              properties: {
+                functionAppName: asaToRedisFuncSite.name
+                functionName: 'AzureStreamAnalyticsToRedis'
+                apiKey: listKeys('${asaToRedisFuncSite.id}/host/default', '2021-02-01').functionKeys.default
+              }
+            }
+          }
+        }
+        {
           name: 'AnomalyDetectionOutput'
           properties: {
             datasource: {
@@ -414,6 +433,37 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
         query: job.query
       }
     }
+    functions: (contains(job, 'anomalyDetectionJob')) ? [
+      {
+        name: 'pointToObject'
+        properties: {
+          type: 'Scalar'
+          properties: {
+            binding : {
+              type: 'Microsoft.StreamAnalytics/JavascriptUdf'
+              properties: {
+                script: job.udfScript
+              }
+            }
+            inputs: [
+              {
+                dataType: 'datetime'
+                isConfigurationParameter: false
+              }
+              {
+                dataType: 'float'
+                isConfigurationParameter: false
+              }
+            ]
+            output: {
+              dataType: 'record'
+            }
+          }
+        }
+      }
+    ] : [
+      
+    ]
   }
 }]
 
@@ -422,34 +472,18 @@ resource sharedLogicAppIdentity 'Microsoft.ManagedIdentity/userAssignedIdentitie
   location: resourcesLocation
 }
 
-resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployAnomaly) {
+resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if (deployAnomalyDetectionResources) {
   name: 'msdyn-iiot-sdi-anomaly-detector-${uniqueIdentifier}'
   location: resourcesLocation
   sku: {
     name: 'F0'
   }
   kind: 'AnomalyDetector'
-  identity: {
-    type:'UserAssigned'
-    userAssignedIdentities: {
-      '${sharedLogicAppIdentity.id}': {}
-    }
-  }
   properties: {
     apiProperties: {
       statisticsEnabled: false
     }
-  }
-}
-
-resource anomalyDetectorRoleAssingment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if (deployAnomaly) {
-  scope: anomalyDetector
-  name: guid(anomalyDetector.id, sharedLogicAppIdentity.id, azureCognitiveServicesDataContributorRoleId)
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureCognitiveServicesDataContributorRoleId)
-    principalId: sharedLogicAppIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-    description: 'For letting ${sharedLogicAppIdentity.name} using Anomaly Detector'
+    customSubDomainName: (length(customAnomalyDetectorDomainName) == 0) ? 'msdyn-iiot-anomaly-detector-${uniqueIdentifier}' : customAnomalyDetectorDomainName
   }
 }
 
@@ -676,14 +710,11 @@ resource notificationLogicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   }
 }
 
-resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-01' = {
+resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-01' = if(deployAnomalyDetectionResources) {
   name: 'msdyn-iiot-sdi-uad-last-point-${uniqueIdentifier}'
   location: resourcesLocation
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${sharedLogicAppIdentity.id}': {}
-    }
+    type: 'SystemAssigned'
   }
   properties: {
     definition: json(loadTextContent('logic-apps/univariate-anomaly-detection-last-point.json')).definition
@@ -697,7 +728,6 @@ resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-0
             connectionProperties: {
               authentication: {
                 type: 'ManagedServiceIdentity'
-                identity: sharedLogicAppIdentity.id
               }
             }
           }
@@ -705,8 +735,7 @@ resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-0
       }
       AnomalyDetectorIdentityAuthentication: {
         value: {
-          audience: anomalyDetector.properties.endpoint
-          identity: sharedLogicAppIdentity.id
+          audience: 'https://cognitiveservices.azure.com/'
           type: 'ManagedServiceIdentity'
         }
       }
@@ -724,6 +753,39 @@ resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-0
         ]
       }
     }
+  }
+}
+
+resource serviceBusSenderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
+  scope: asaToDynamicsServiceBus
+  name: guid(asaToDynamicsServiceBus::outboundInsightsQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataSenderRoleId)
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureServiceBusDataSenderRoleId)
+    principalId: univariateAnomalyDetectionLogicApp.identity.principalId
+    principalType: 'ServicePrincipal'
+    description: 'For letting ${univariateAnomalyDetectionLogicApp.name} send messages to Service Bus queues.'
+  }
+}
+
+resource serviceBusReaderSystemIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
+  scope: asaToDynamicsServiceBus
+  name: guid(asaToDynamicsServiceBus::anomalyTasksQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataReceiverRoleId)
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureServiceBusDataReceiverRoleId)
+    principalId: univariateAnomalyDetectionLogicApp.identity.principalId
+    principalType: 'ServicePrincipal'
+    description: 'For letting ${univariateAnomalyDetectionLogicApp.name} read messages from Service Bus queues.'
+  }
+}
+
+resource anomalyDetectorUserRoleAssingment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if (deployAnomalyDetectionResources) {
+  scope: anomalyDetector
+  name: guid(anomalyDetector.id, sharedLogicAppIdentity.id, azureCognitiveServicesUserRoleId)
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureCognitiveServicesUserRoleId)
+    principalId: univariateAnomalyDetectionLogicApp.identity.principalId
+    principalType: 'ServicePrincipal'
+    description: 'For letting ${univariateAnomalyDetectionLogicApp.name} use Anomaly Detector endpoint'
   }
 }
 
