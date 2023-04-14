@@ -1,6 +1,6 @@
 # Dynamics 365 SCM Sensor Data Intelligence, Azure sample template
 
-[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjerzy-n%2FDynamics365-Sensor-Data-Intelligence-ARMDeployments%2Fanomaly-detection-scenario%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fjerzy-n%2FDynamics365-Sensor-Data-Intelligence-ARMDeployments%2Fanomaly-detection-scenario%2FcreateUiDefinition.json)
+[![Deploy To Azure](https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/1-CONTRIBUTION-GUIDE/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FDynamics365-Sensor-Data-Intelligence-ARMDeployments%2Fmain%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FDynamics365-Sensor-Data-Intelligence-ARMDeployments%2Fmain%2FcreateUiDefinition.json)
 
 This template deploys a set of baseline Azure resources for use in Dynamics 365 SCM Sensor Data Intelligence. Sensor Data Intelligence consumes output from an insights layer (Stream Analytics) to notify and affect business processes in Dynamics 365.
 
