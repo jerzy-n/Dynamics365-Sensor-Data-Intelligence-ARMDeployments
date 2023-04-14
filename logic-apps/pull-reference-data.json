@@ -16,7 +16,7 @@
         },
         "else": {
           "actions": {
-            "Set_variable": {
+            "SetNewAssetUnivariateAnomalyDetectionScenarioRefData": {
               "inputs": {
                 "name": "newAssetUnivariateAnomalyDetectionScenarioRefData",
                 "value": "[]"
@@ -1336,8 +1336,8 @@
               "method": "post",
               "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files",
               "queries": {
-                "folderPath": "sensorintelligencereferencedata/univariateanomalydetectionjobs",
-                "name": "@{concat('univariateanomalydetectionjobs', utcNow('yyyy-MM-ddTHH-mm'), '.json')}",
+                "folderPath": "sensorintelligencereferencedata/assetunivariateanomalydetectionparams",
+                "name": "@{concat('assetunivariateanomalydetectionparams', utcNow('yyyy-MM-ddTHH-mm'), '.json')}",
                 "queryParametersSingleEncoded": true
               }
             },
@@ -1364,7 +1364,7 @@
               "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files",
               "queries": {
                 "folderPath": "sensorintelligencereferencedata/scenarios",
-                "name": "univariateanomalydetection.json",
+                "name": "assetunivariateanomalydetection.json",
                 "queryParametersSingleEncoded": true
               }
             },

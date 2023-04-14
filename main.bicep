@@ -70,7 +70,7 @@ var streamAnomalyDetectionJobs = [
   {
     scenario: 'asset-univariate-anomaly-detection'
     referenceDataName: 'AssetSensorAnomalyParamsReferenceInput'
-    referencePathPattern: 'assetsensoranomalyparams/assetsensoranomalyparams{date}T{time}.json'
+    referencePathPattern: 'assetunivariateanomalydetectionparams/assetunivariateanomalydetectionparams{date}T{time}.json'
     query: loadTextContent('stream-analytics-queries/asset-anomaly-detection/asset-anomaly-detection.asaql')
     udfScript: loadTextContent('stream-analytics-queries/asset-anomaly-detection/Functions/pointToObject.js')
     anomalyDetectionJob: true
@@ -145,7 +145,10 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-08-01' = {
   }
 }
 
-resource asaToDynamicsServiceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-preview' = {
+// ServiceBus with connections:
+// - ASA -> Dynamics
+// - ASA -> Azure Anomaly Detector -> Dynamics
+resource serviceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-preview' = {
   name: 'msdyn-iiot-sdi-servicebus-${uniqueIdentifier}'
   location: resourcesLocation
   sku: {
@@ -172,7 +175,7 @@ resource asaToDynamicsServiceBus 'Microsoft.ServiceBus/namespaces@2021-06-01-pre
     }
   }
 
-  resource anomalyTasksQueue 'queues' = if (deployAnomalyDetectionResources) {
+  resource anomalyDetectionQueue 'queues' = if (deployAnomalyDetectionResources) {
     name: 'anomaly-detection-queue'
     properties: {
       enablePartitioning: false
@@ -373,12 +376,12 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
           datasource: {
             type: 'Microsoft.ServiceBus/Queue'
             properties: {
-              serviceBusNamespace: asaToDynamicsServiceBus.name
-              queueName: asaToDynamicsServiceBus::outboundInsightsQueue.name
+              serviceBusNamespace: serviceBus.name
+              queueName: serviceBus::outboundInsightsQueue.name
               // ASA does not yet support 'Msi' authentication mode for Service Bus output
               authenticationMode: 'ConnectionString'
-              sharedAccessPolicyName: asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().keyName
-              sharedAccessPolicyKey: asaToDynamicsServiceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().primaryKey
+              sharedAccessPolicyName: serviceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().keyName
+              sharedAccessPolicyKey: serviceBus::outboundInsightsQueue::asaSendAuthorizationRule.listKeys().primaryKey
             }
           }
           serialization: {
@@ -409,12 +412,12 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
             datasource: {
               type: 'Microsoft.ServiceBus/Queue'
               properties: {
-                serviceBusNamespace: asaToDynamicsServiceBus.name
-                queueName: asaToDynamicsServiceBus::anomalyTasksQueue.name
+                serviceBusNamespace: serviceBus.name
+                queueName: serviceBus::anomalyDetectionQueue.name
                 // ASA does not yet support 'Msi' authentication mode for Service Bus output
                 authenticationMode: 'ConnectionString'
-                sharedAccessPolicyName: asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().keyName
-                sharedAccessPolicyKey: asaToDynamicsServiceBus::anomalyTasksQueue::asaSendAuthorizationRule.listKeys().primaryKey
+                sharedAccessPolicyName: serviceBus::anomalyDetectionQueue::asaSendAuthorizationRule.listKeys().keyName
+                sharedAccessPolicyKey: serviceBus::anomalyDetectionQueue::asaSendAuthorizationRule.listKeys().primaryKey
               }
             }
             serialization: {
@@ -483,6 +486,7 @@ resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if 
     apiProperties: {
       statisticsEnabled: false
     }
+    // Custom subdomain is required to used AD Authentication
     customSubDomainName: (length(customAnomalyDetectorDomainName) == 0) ? 'msdyn-iiot-anomaly-detector-${uniqueIdentifier}' : customAnomalyDetectorDomainName
   }
 }
@@ -491,8 +495,8 @@ resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if 
 // so we use a single one for both communicating with the AOS and ServiceBus.
 resource serviceBusReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   // do not assign to queue scope as the Logic App queue name drop down does not work at that scope level (it's OK since we only have 1 queue)
-  scope: asaToDynamicsServiceBus
-  name: guid(asaToDynamicsServiceBus::outboundInsightsQueue.id, sharedLogicAppIdentity.id, azureServiceBusDataReceiverRoleId)
+  scope: serviceBus
+  name: guid(serviceBus::outboundInsightsQueue.id, sharedLogicAppIdentity.id, azureServiceBusDataReceiverRoleId)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureServiceBusDataReceiverRoleId)
     principalId: sharedLogicAppIdentity.properties.principalId
@@ -533,7 +537,7 @@ resource logicApp2ServiceBusConnection 'Microsoft.Web/connections@2016-06-01' = 
       name: 'managedIdentityAuth'
       values: {
         namespaceEndpoint: {
-          value: replace(replace(asaToDynamicsServiceBus.properties.serviceBusEndpoint, 'https://', 'sb://'), ':443', '')
+          value: replace(replace(serviceBus.properties.serviceBusEndpoint, 'https://', 'sb://'), ':443', '')
         }
       }
     }
@@ -710,6 +714,7 @@ resource notificationLogicApp 'Microsoft.Logic/workflows@2019-05-01' = {
   }
 }
 
+// this logic app unlike the other logic apps uses system-assigned identity, in order to assign Service Bus Sender Role
 resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-01' = if(deployAnomalyDetectionResources) {
   name: 'msdyn-iiot-sdi-uad-last-point-${uniqueIdentifier}'
   location: resourcesLocation
@@ -757,8 +762,8 @@ resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-0
 }
 
 resource serviceBusSenderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
-  scope: asaToDynamicsServiceBus
-  name: guid(asaToDynamicsServiceBus::outboundInsightsQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataSenderRoleId)
+  scope: serviceBus
+  name: guid(serviceBus::outboundInsightsQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataSenderRoleId)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureServiceBusDataSenderRoleId)
     principalId: univariateAnomalyDetectionLogicApp.identity.principalId
@@ -768,8 +773,8 @@ resource serviceBusSenderRoleAssignment 'Microsoft.Authorization/roleAssignments
 }
 
 resource serviceBusReaderSystemIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
-  scope: asaToDynamicsServiceBus
-  name: guid(asaToDynamicsServiceBus::anomalyTasksQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataReceiverRoleId)
+  scope: serviceBus
+  name: guid(serviceBus::anomalyDetectionQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataReceiverRoleId)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureServiceBusDataReceiverRoleId)
     principalId: univariateAnomalyDetectionLogicApp.identity.principalId
