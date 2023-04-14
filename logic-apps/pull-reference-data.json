@@ -2,47 +2,6 @@
   "definition": {
     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
     "actions": {
-      "Condition": {
-        "actions": {
-          "HTTP": {
-            "inputs": {
-              "authentication": "@parameters('DynamicsIdentityAuthentication')",
-              "method": "GET",
-              "uri": "@{parameters('EnvironmentUrl')}data/AnomalyDetectionParams"
-            },
-            "runAfter": {},
-            "type": "Http"
-          }
-        },
-        "else": {
-          "actions": {
-            "SetNewAssetUnivariateAnomalyDetectionScenarioRefData": {
-              "inputs": {
-                "name": "newAssetUnivariateAnomalyDetectionScenarioRefData",
-                "value": "[]"
-              },
-              "runAfter": {},
-              "type": "SetVariable"
-            }
-          }
-        },
-        "expression": {
-          "and": [
-            {
-              "equals": [
-                "@empty(body('FilterAssetUnivariateAnomalyDetectionScenario'))",
-                "@false"
-              ]
-            }
-          ]
-        },
-        "runAfter": {
-          "NewAssetUnivariateAnomalyDetectionScenarioRefData": [
-            "Succeeded"
-          ]
-        },
-        "type": "If"
-      },
       "CreateAssetDowntimeScenarioRefDataBlob": {
         "inputs": {
           "variables": [
@@ -89,6 +48,23 @@
         },
         "runAfter": {
           "LatestAssetMonitorScenarioRefData": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
+      "CreateAssetUnivariateAnomalyDetectionScenarioRefDataBlob": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "createAssetUnivariateAnomalyDetectionScenarioRefDataBlob",
+              "type": "boolean",
+              "value": "@false"
+            }
+          ]
+        },
+        "runAfter": {
+          "LatestAssetUnivariateAnomalyDetectionScenarioRefData": [
             "Succeeded"
           ]
         },
@@ -371,7 +347,7 @@
           }
         },
         "runAfter": {
-          "Condition": [
+          "IfActiveAssetUnivariateAnomalyDetectionScenarioExists": [
             "Succeeded"
           ]
         },
@@ -709,6 +685,101 @@
         },
         "runAfter": {
           "NewAssetMonitorScenarioRefData": [
+            "Succeeded"
+          ]
+        },
+        "type": "If"
+      },
+      "IfActiveAssetUnivariateAnomalyDetectionScenarioExists": {
+        "actions": {
+          "GetAssetUnivariateAnomalyDetectionParams": {
+            "inputs": {
+              "authentication": "@parameters('DynamicsIdentityAuthentication')",
+              "method": "GET",
+              "uri": "@{parameters('EnvironmentUrl')}data/AnomalyDetectionParams"
+            },
+            "runAfter": {},
+            "type": "Http"
+          },
+          "ParseAssetUnivariateAnomalyDetectionParams": {
+            "inputs": {
+              "content": "@body('GetAssetUnivariateAnomalyDetectionParams')",
+              "schema": {
+                "properties": {
+                  "value": {
+                    "items": {
+                      "properties": {
+                        "IsSensorActiveForScenario": {
+                          "type": "string"
+                        },
+                        "Scenario": {
+                          "type": "string"
+                        },
+                        "Sensitivity": {
+                          "type": "float"
+                        },
+                        "SensorId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "SensorId",
+                        "Scenario",
+                        "IsSensorActiveForScenario",
+                        "Sensitivity"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "runAfter": {
+              "GetAssetUnivariateAnomalyDetectionParams": [
+                "Succeeded"
+              ]
+            },
+            "type": "ParseJson"
+          },
+          "SetNewAssetUnivariateAnomalyDetectoinScenarioRefData": {
+            "inputs": {
+              "name": "newAssetUnivariateAnomalyDetectionScenarioRefData",
+              "value": "@{body('ParseAssetUnivariateAnomalyDetectionParams')?['value']}"
+            },
+            "runAfter": {
+              "ParseAssetUnivariateAnomalyDetectionParams": [
+                "Succeeded"
+              ]
+            },
+            "type": "SetVariable"
+          }
+        },
+        "else": {
+          "actions": {
+            "SetNewAssetUnivariateAnomalyDetectionScenarioRefData": {
+              "inputs": {
+                "name": "newAssetUnivariateAnomalyDetectionScenarioRefData",
+                "value": "[]"
+              },
+              "runAfter": {},
+              "type": "SetVariable"
+            }
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@empty(body('FilterAssetUnivariateAnomalyDetectionScenario'))",
+                "@false"
+              ]
+            }
+          ]
+        },
+        "runAfter": {
+          "NewAssetUnivariateAnomalyDetectionScenarioRefData": [
             "Succeeded"
           ]
         },
@@ -1780,23 +1851,6 @@
         },
         "type": "InitializeVariable"
       },
-      "LatestAssetUnivariateAnomalyDetectionScenarioRefDataBlob": {
-        "inputs": {
-          "variables": [
-            {
-              "name": "createAssetUnivariateAnomalyDetectionScenarioRefDataBlob",
-              "type": "boolean",
-              "value": "@false"
-            }
-          ]
-        },
-        "runAfter": {
-          "LatestAssetUnivariateAnomalyDetectionScenarioRefData": [
-            "Succeeded"
-          ]
-        },
-        "type": "InitializeVariable"
-      },
       "LatestAssetUnivariateAnomalyDetectionScenarioRefDataPointer": {
         "inputs": {
           "variables": [
@@ -1968,7 +2022,7 @@
           ]
         },
         "runAfter": {
-          "LatestAssetUnivariateAnomalyDetectionScenarioRefDataBlob": [
+          "CreateAssetUnivariateAnomalyDetectionScenarioRefDataBlob": [
             "Succeeded"
           ]
         },
