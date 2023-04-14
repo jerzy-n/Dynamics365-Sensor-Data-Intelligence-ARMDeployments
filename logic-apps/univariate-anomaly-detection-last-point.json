@@ -2,6 +2,23 @@
   "definition": {
     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
     "actions": {
+      "Check_If_Last_Point_Is_Anomaly": {
+        "inputs": {
+          "authentication": "@parameters('AnomalyDetectorIdentityAuthentication')",
+          "body": "@body('Parse_Content_of_the_Message')",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "method": "POST",
+          "uri": "@{parameters('AnomalyDetectionEndpoint')}anomalydetector/v1.1/timeseries/last/detect"
+        },
+        "runAfter": {
+          "Parse_Content_of_the_Message": [
+            "Succeeded"
+          ]
+        },
+        "type": "Http"
+      },
       "Complete_the_message_in_a_queue": {
         "inputs": {
           "host": {
@@ -17,25 +34,20 @@
           }
         },
         "runAfter": {
-          "Condition": [
+          "If_Status_Code_Is_200": [
             "Succeeded"
           ]
         },
         "type": "ApiConnection"
       },
-      "Compose": {
-        "inputs": "@json(decodeBase64(triggerBody()['ContentData']))",
-        "runAfter": {},
-        "type": "Compose"
-      },
-      "Condition": {
+      "If_Status_Code_Is_200": {
         "actions": {
-          "Condition_2": {
+          "If_Anomaly_Is_Found": {
             "actions": {
               "Send_message": {
                 "inputs": {
                   "body": {
-                    "ContentData": "@{base64(concat('{ \"notificationType\": \"Anomaly\", \"timestamp\": \"',outputs('Compose')?['processingTimestamp'],'\" }'))}"
+                    "ContentData": "@{base64(concat('{ \"notificationType\": \"Anomaly: ',body('Parse_Content_of_the_Message')?['sensorId'],', Severity: ',body('Parse_Response_From_Anomaly_Detector')?['severity'],', IsPositiveAnomaly: ',body('Parse_Response_From_Anomaly_Detector')['isPositiveAnomaly'],', IsNegativeAnomaly: ',body('Parse_Response_From_Anomaly_Detector')['isNegativeAnomaly'],', ExpectedValue: ',body('Parse_Response_From_Anomaly_Detector')['expectedValue'],', LowerMargin: ',body('Parse_Response_From_Anomaly_Detector')['lowerMargin'],', UpperMargin: ',body('Parse_Response_From_Anomaly_Detector')['upperMargin'],', SuggestedWindow: ',body('Parse_Response_From_Anomaly_Detector')['suggestedWindow'],', Period: ',body('Parse_Response_From_Anomaly_Detector')['period'],'\", \"timestamp\": \"',body('Parse_Content_of_the_Message')?['processingTimestamp'],'\" }'))}"
                   },
                   "host": {
                     "connection": {
@@ -56,49 +68,136 @@
               "and": [
                 {
                   "equals": [
-                    "@body('HTTP')?['isAnomaly']",
-                    true
+                    "@body('Parse_Response_From_Anomaly_Detector')['isAnomaly']",
+                    "@true"
                   ]
                 }
               ]
             },
-            "runAfter": {},
+            "runAfter": {
+              "Parse_Response_From_Anomaly_Detector": [
+                "Succeeded"
+              ]
+            },
             "type": "If"
+          },
+          "Parse_Response_From_Anomaly_Detector": {
+            "inputs": {
+              "content": "@body('Check_If_Last_Point_Is_Anomaly')",
+              "schema": {
+                "properties": {
+                  "expectedValue": {
+                    "description": "Expected value of the latest point.",
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "isAnomaly": {
+                    "description": "Anomaly status of the latest point, true means the latest point is an anomaly either in negative direction or positive direction.",
+                    "type": "boolean"
+                  },
+                  "isNegativeAnomaly": {
+                    "description": "Anomaly status in negative direction of the latest point. True means the latest point is an anomaly and its real value is smaller than the expected one.",
+                    "type": "boolean"
+                  },
+                  "isPositiveAnomaly": {
+                    "description": "Anomaly status in positive direction of the latest point. True means the latest point is an anomaly and its real value is larger than the expected one.",
+                    "type": "boolean"
+                  },
+                  "lowerMargin": {
+                    "description": "Lower margin of the latest point. LowerMargin is used to calculate lowerBoundary, which equals to expectedValue - (100 - marginScale)*lowerMargin. ",
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "period": {
+                    "description": "Frequency extracted from the series, zero means no recurrent pattern has been found.",
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "severity": {
+                    "description": "The severity score for the last input point. The larger the value is, the more sever the anomaly is. For normal points, the \"severity\" is always 0.",
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "suggestedWindow": {
+                    "description": "Suggested input series points needed for detecting the latest point.",
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "upperMargin": {
+                    "description": "Upper margin of the latest point. UpperMargin is used to calculate upperBoundary, which equals to expectedValue + (100 - marginScale)*upperMargin. If the value of latest point is between upperBoundary and lowerBoundary, it should be treated as normal value. By adjusting marginScale value, anomaly status of latest point can be changed.",
+                    "format": "float",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "expectedValue",
+                  "isAnomaly",
+                  "isNegativeAnomaly",
+                  "isPositiveAnomaly",
+                  "lowerMargin",
+                  "period",
+                  "upperMargin",
+                  "suggestedWindow"
+                ],
+                "type": "object"
+              }
+            },
+            "runAfter": {},
+            "type": "ParseJson"
           }
         },
         "expression": {
           "and": [
             {
               "equals": [
-                "@outputs('HTTP')['statusCode']",
+                "@outputs('Check_If_Last_Point_Is_Anomaly')['statusCode']",
                 200
               ]
             }
           ]
         },
         "runAfter": {
-          "HTTP": [
+          "Check_If_Last_Point_Is_Anomaly": [
             "Succeeded"
           ]
         },
         "type": "If"
       },
-      "HTTP": {
+      "Parse_Content_of_the_Message": {
         "inputs": {
-          "authentication": "@parameters('AnomalyDetectorIdentityAuthentication')",
-          "body": "@outputs('Compose')",
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "method": "POST",
-          "uri": "@{parameters('AnomalyDetectionEndpoint')}anomalydetector/v1.1/timeseries/last/detect"
+          "content": "@decodeBase64(triggerBody()['ContentData'])",
+          "schema": {
+            "properties": {
+              "processingTimestamp": {
+                "type": "string"
+              },
+              "sensorId": {
+                "type": "string"
+              },
+              "series": {
+                "items": {
+                  "properties": {
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "timestamp",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          }
         },
-        "runAfter": {
-          "Compose": [
-            "Succeeded"
-          ]
-        },
-        "type": "Http"
+        "runAfter": {},
+        "type": "ParseJson"
       }
     },
     "contentVersion": "1.0.0.0",
@@ -132,7 +231,8 @@
           "method": "get",
           "path": "/@{encodeURIComponent(encodeURIComponent('anomaly-detection-queue'))}/messages/head/peek",
           "queries": {
-            "queueType": "Main"
+            "queueType": "Main",
+            "sessionId": "None"
           }
         },
         "recurrence": {
