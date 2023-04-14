@@ -28,42 +28,42 @@ var azureCognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 var trimmedEnvironmentUrl = trim(supplyChainManagementEnvironmentURL)
 
 var streamScenarioJobs = [
-  // {
-  //   scenario: 'asset-downtime'
-  //   referenceDataName: 'AssetSensorDowntimeThresholdsReferenceInput'
-  //   referencePathPattern: 'assetsensordowntimethresholds/assetsensordowntimethresholds{date}T{time}.json'
-  //   query: loadTextContent('stream-analytics-queries/asset-downtime/asset-downtime.asaql')
-  // }
-  // {
-  //   scenario: 'asset-maintenance'
-  //   referenceDataName: 'ScenarioMappings'
-  //   referencePathPattern: 'assetmaintenancedata/assetmaintenance{date}T{time}.json'
-  //   query: loadTextContent('stream-analytics-queries/asset-maintenance/asset-maintenance.asaql')
-  // }
-  // {
-  //   scenario: 'asset-monitor'
-  //   referenceDataName: 'AssetSensorMonitorThresholdsReferenceInput'
-  //   referencePathPattern: 'assetsensormonitorthresholds/assetsensormonitorthresholds{date}T{time}.json'
-  //   query: loadTextContent('stream-analytics-queries/asset-monitor/asset-monitor.asaql')
-  // }
-  // {
-  //   scenario: 'machine-reporting-status'
-  //   referenceDataName: 'SensorJobsReferenceInput'
-  //   referencePathPattern: 'sensorjobs/sensorjobs{date}T{time}.json'
-  //   query: loadTextContent('stream-analytics-queries/machine-reporting-status/machine-reporting-status.asaql')
-  // }
-  // {
-  //   scenario: 'product-quality-validation'
-  //   referenceDataName: 'SensorJobItemBatchAttributeReferenceInput'
-  //   referencePathPattern: 'sensorjobbatchattributes/sensorjobitembatchattributemappings{date}T{time}.json'
-  //   query: loadTextContent('stream-analytics-queries/product-quality-validation/product-quality-validation.asaql')
-  // }
-  // {
-  //   scenario: 'production-job-delayed'
-  //   referenceDataName: 'SensorJobExecutionsReferenceInput'
-  //   referencePathPattern: 'sensorjobexecutions/sensorjobexecutions{date}T{time}.json'
-  //   query: loadTextContent('stream-analytics-queries/production-job-delayed/production-job-delayed.asaql')
-  // }
+  {
+    scenario: 'asset-downtime'
+    referenceDataName: 'AssetSensorDowntimeThresholdsReferenceInput'
+    referencePathPattern: 'assetsensordowntimethresholds/assetsensordowntimethresholds{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/asset-downtime/asset-downtime.asaql')
+  }
+  {
+    scenario: 'asset-maintenance'
+    referenceDataName: 'ScenarioMappings'
+    referencePathPattern: 'assetmaintenancedata/assetmaintenance{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/asset-maintenance/asset-maintenance.asaql')
+  }
+  {
+    scenario: 'asset-monitor'
+    referenceDataName: 'AssetSensorMonitorThresholdsReferenceInput'
+    referencePathPattern: 'assetsensormonitorthresholds/assetsensormonitorthresholds{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/asset-monitor/asset-monitor.asaql')
+  }
+  {
+    scenario: 'machine-reporting-status'
+    referenceDataName: 'SensorJobsReferenceInput'
+    referencePathPattern: 'sensorjobs/sensorjobs{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/machine-reporting-status/machine-reporting-status.asaql')
+  }
+  {
+    scenario: 'product-quality-validation'
+    referenceDataName: 'SensorJobItemBatchAttributeReferenceInput'
+    referencePathPattern: 'sensorjobbatchattributes/sensorjobitembatchattributemappings{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/product-quality-validation/product-quality-validation.asaql')
+  }
+  {
+    scenario: 'production-job-delayed'
+    referenceDataName: 'SensorJobExecutionsReferenceInput'
+    referencePathPattern: 'sensorjobexecutions/sensorjobexecutions{date}T{time}.json'
+    query: loadTextContent('stream-analytics-queries/production-job-delayed/production-job-delayed.asaql')
+  }
 ]
 
 var streamAnomalyDetectionJobs = [
