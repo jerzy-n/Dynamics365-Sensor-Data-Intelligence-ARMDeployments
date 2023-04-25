@@ -7,9 +7,6 @@ param existingIotHubResourceGroupName string = ''
 @description('(Optional) Resource name of an Azure IoT Hub to reuse.')
 param existingIotHubName string = ''
 
-@description('(Optional) Custom domain name for anomaly detector.')
-param customAnomalyDetectorDomainName string = ''
-
 #disable-next-line no-loc-expr-outside-params
 var resourcesLocation = resourceGroup().location
 
@@ -66,20 +63,23 @@ var streamScenarioJobs = [
   }
 ]
 
-var streamAnomalyDetectionJobs = [
+// Univariate Anomaly Detection Stream Scenario Jobs
+var uadStreamScenarioJobs = [
   {
     scenario: 'asset-univariate-anomaly-detection'
     referenceDataName: 'AssetSensorAnomalyParamsReferenceInput'
     referencePathPattern: 'assetunivariateanomalydetectionparams/assetunivariateanomalydetectionparams{date}T{time}.json'
     query: loadTextContent('stream-analytics-queries/asset-anomaly-detection/asset-anomaly-detection.asaql')
-    udfScript: loadTextContent('stream-analytics-queries/asset-anomaly-detection/Functions/pointToObject.js')
-    anomalyDetectionJob: true
+    udf: {
+      udfFuncName: 'pointToObject'
+      udfScript: loadTextContent('stream-analytics-queries/asset-anomaly-detection/Functions/pointToObject.js')
+    }
   }
 ]
 
-var deployAnomalyDetectionResources = length(streamAnomalyDetectionJobs) > 0
+var deployAnomalyDetectionResources = length(uadStreamScenarioJobs) > 0
 
-var allStreamScenarioJobs = concat(streamScenarioJobs, streamAnomalyDetectionJobs)
+var allStreamScenarioJobs = concat(streamScenarioJobs, uadStreamScenarioJobs)
 
 resource redis 'Microsoft.Cache/Redis@2021-06-01' = {
   name: 'msdyn-iiot-sdi-redis-${uniqueIdentifier}'
@@ -282,7 +282,7 @@ resource appDeploymentWait 'Microsoft.Resources/deploymentScripts@2020-10-01' = 
   }
 }
 
-resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview' = [for job in allStreamScenarioJobs: {
+resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview' = [for job in streamScenarioJobs: {
   // It is not possible to put an Azure Stream Analytics (ASA) job in a Virtual Network
   // without using a dedicated ASA cluster. ASA clusters have a higher base cost compared
   // to individual jobs, but should be considered for production- as it enables VNET isolation.
@@ -356,7 +356,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
         }
       }
     ]
-    outputs: (!contains(job, 'anomalyDetectionJob')) ? [
+    outputs: [
       {
         name: 'MetricOutput'
         properties: {
@@ -392,51 +392,130 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
             }
           }
         }
-      }] : [
-        {
-          name: 'MetricOutput'
-          properties: {
-            datasource: {
-              type: 'Microsoft.AzureFunction'
-              properties: {
-                functionAppName: asaToRedisFuncSite.name
-                functionName: 'AzureStreamAnalyticsToRedis'
-                apiKey: listKeys('${asaToRedisFuncSite.id}/host/default', '2021-02-01').functionKeys.default
-              }
-            }
-          }
-        }
-        {
-          name: 'AnomalyDetectionOutput'
-          properties: {
-            datasource: {
-              type: 'Microsoft.ServiceBus/Queue'
-              properties: {
-                serviceBusNamespace: serviceBus.name
-                queueName: serviceBus::anomalyDetectionQueue.name
-                // ASA does not yet support 'Msi' authentication mode for Service Bus output
-                authenticationMode: 'ConnectionString'
-                sharedAccessPolicyName: serviceBus::anomalyDetectionQueue::asaSendAuthorizationRule.listKeys().keyName
-                sharedAccessPolicyKey: serviceBus::anomalyDetectionQueue::asaSendAuthorizationRule.listKeys().primaryKey
-              }
-            }
-            serialization: {
-              type: 'Json'
-              properties: {
-                encoding: 'UTF8'
-                format: 'Array'
-              }
-            }
-          }
-        }
-      ]
+      }]
     transformation: {
       name: 'input2output'
       properties: {
         query: job.query
       }
     }
-    functions: (contains(job, 'anomalyDetectionJob')) ? [
+  }
+}]
+
+resource univariateAnomalyDetectionJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01-preview' = [for job in uadStreamScenarioJobs: {
+  // It is not possible to put an Azure Stream Analytics (ASA) job in a Virtual Network
+  // without using a dedicated ASA cluster. ASA clusters have a higher base cost compared
+  // to individual jobs, but should be considered for production- as it enables VNET isolation.
+  name: 'msdyn-iiot-sdi-${job.scenario}-${uniqueIdentifier}'
+  location: resourcesLocation
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    sku: {
+      name: 'Standard'
+    }
+    compatibilityLevel: '1.2'
+    outputStartMode: 'JobStartTime'
+    inputs: [
+      {
+        name: 'IotInput'
+        properties: {
+          type: 'Stream'
+          datasource: {
+            type: 'Microsoft.Devices/IotHubs'
+            properties: {
+              iotHubNamespace: createNewIotHub ? newIotHub.name : existingIotHub.name
+              // listkeys().value[1] == service policy, which is less privileged than listkeys().value[0] (iot hub owner)
+              // unless user's existing iot hub policies list is modified; in which case they must go into ASA
+              // and pick a concrete key to use for the IoT Hub input.
+              sharedAccessPolicyName: createNewIotHub ? newIotHub.listkeys().value[1].keyName : existingIotHub.listkeys().value[1].keyName
+              sharedAccessPolicyKey: createNewIotHub ? newIotHub.listkeys().value[1].primaryKey : existingIotHub.listkeys().value[1].primaryKey
+              endpoint: 'messages/events'
+              consumerGroupName: job.scenario
+            }
+          }
+          serialization: {
+            type: 'Json'
+            properties: {
+              encoding: 'UTF8'
+            }
+          }
+        }
+      }
+      {
+        name: job.referenceDataName
+        properties: {
+          type: 'Reference'
+          datasource: {
+            type: 'Microsoft.Storage/Blob'
+            properties: {
+              authenticationMode: 'Msi'
+              storageAccounts: [
+                {
+                  accountName: storageAccount.name
+                }
+              ]
+              container: storageAccount::blobServices::referenceDataBlobContainer.name
+              pathPattern: job.referencePathPattern
+              dateFormat: 'yyyy-MM-dd'
+              timeFormat: 'HH-mm'
+            }
+          }
+          serialization: {
+            type: 'Json'
+            properties: {
+              encoding: 'UTF8'
+            }
+          }
+        }
+      }
+    ]
+    outputs: [
+      {
+        name: 'MetricOutput'
+        properties: {
+          datasource: {
+            type: 'Microsoft.AzureFunction'
+            properties: {
+              functionAppName: asaToRedisFuncSite.name
+              functionName: 'AzureStreamAnalyticsToRedis'
+              apiKey: listKeys('${asaToRedisFuncSite.id}/host/default', '2021-02-01').functionKeys.default
+            }
+          }
+        }
+      }
+      {
+        name: 'AnomalyDetectionOutput'
+        properties: {
+          datasource: {
+            type: 'Microsoft.ServiceBus/Queue'
+            properties: {
+              serviceBusNamespace: serviceBus.name
+              queueName: serviceBus::anomalyDetectionQueue.name
+              // ASA does not yet support 'Msi' authentication mode for Service Bus output
+              authenticationMode: 'ConnectionString'
+              sharedAccessPolicyName: serviceBus::anomalyDetectionQueue::asaSendAuthorizationRule.listKeys().keyName
+              sharedAccessPolicyKey: serviceBus::anomalyDetectionQueue::asaSendAuthorizationRule.listKeys().primaryKey
+            }
+          }
+          serialization: {
+            type: 'Json'
+            properties: {
+              encoding: 'UTF8'
+              format: 'Array'
+            }
+          }
+        }
+      }
+    ]
+    transformation: {
+      name: 'input2output'
+      properties: {
+        query: job.query
+      }
+    }
+    functions: (contains(job, 'udf')) ? [
       {
         name: 'pointToObject'
         properties: {
@@ -445,7 +524,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
             binding : {
               type: 'Microsoft.StreamAnalytics/JavascriptUdf'
               properties: {
-                script: job.udfScript
+                script: job.udf
               }
             }
             inputs: [
@@ -464,9 +543,7 @@ resource streamAnalyticsJobs 'Microsoft.StreamAnalytics/streamingjobs@2021-10-01
           }
         }
       }
-    ] : [
-      
-    ]
+    ] : []
   }
 }]
 
@@ -483,11 +560,8 @@ resource anomalyDetector 'Microsoft.CognitiveServices/accounts@2022-12-01' = if 
   }
   kind: 'AnomalyDetector'
   properties: {
-    apiProperties: {
-      statisticsEnabled: false
-    }
     // Custom subdomain is required to used AD Authentication
-    customSubDomainName: (length(customAnomalyDetectorDomainName) == 0) ? 'msdyn-iiot-anomaly-detector-${uniqueIdentifier}' : customAnomalyDetectorDomainName
+    customSubDomainName: 'msdyn-iiot-anomaly-detector-${uniqueIdentifier}'
   }
 }
 
@@ -524,6 +598,17 @@ resource streamAnalyticsBlobDataContributorRoleAssignment 'Microsoft.Authorizati
     principalId: streamAnalyticsJobs[i].identity.principalId
     principalType: 'ServicePrincipal'
     description: 'For letting ${streamAnalyticsJobs[i].name} read from the reference data Storage Account. Stream Analytics needs Contributor role to function, even if it only reads.'
+  }
+}]
+
+resource uadStreamAnaltyicsBlobDataContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = [for i in range(0, length(uadStreamScenarioJobs)): {
+  scope: storageAccount
+  name: guid(storageAccount.id, univariateAnomalyDetectionJobs[i].id, azureStorageBlobDataContributorRoleId)
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', azureStorageBlobDataContributorRoleId)
+    principalId: univariateAnomalyDetectionJobs[i].identity.principalId
+    principalType: 'ServicePrincipal'
+    description: 'For letting ${univariateAnomalyDetectionJobs[i].name} read from the reference data Storage Account. Stream Analytics needs Contributor role to function, even if it only reads.'
   }
 }]
 
@@ -761,7 +846,7 @@ resource univariateAnomalyDetectionLogicApp 'Microsoft.Logic/workflows@2019-05-0
   }
 }
 
-resource serviceBusSenderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
+resource anomalyDetectorServiceBusSenderRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
   scope: serviceBus
   name: guid(serviceBus::outboundInsightsQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataSenderRoleId)
   properties: {
@@ -772,7 +857,7 @@ resource serviceBusSenderRoleAssignment 'Microsoft.Authorization/roleAssignments
   }
 }
 
-resource serviceBusReaderSystemIdentityRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
+resource anomalyDetectorServiceBusReceiverRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = if(deployAnomalyDetectionResources) {
   scope: serviceBus
   name: guid(serviceBus::anomalyDetectionQueue.id, univariateAnomalyDetectionLogicApp.id, azureServiceBusDataReceiverRoleId)
   properties: {

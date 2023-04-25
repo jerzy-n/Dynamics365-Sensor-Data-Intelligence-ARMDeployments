@@ -18,6 +18,7 @@ This document provides suggestions on how to fork this template and lift it into
   - [Redis Cache scaling](#redis-cache-scaling)
   - [Service Bus scaling](#service-bus-scaling)
   - [Stream Analytics jobs scaling](#stream-analytics-jobs-scaling)
+  - [Azure Anomaly Detection scaling](#azure-anomaly-detection-scaling)
 
 ## Adding monitoring
 
@@ -130,3 +131,7 @@ In general, queries in each job can scale up to 6 SUs due to [parallelization in
 If more than a single SU is needed, in case SU utilization constantly sits above a high (>~75%) utilization, jobs can be scaled manually, see: <https://docs.microsoft.com/azure/stream-analytics/stream-analytics-streaming-unit-consumption>.
 
 Jobs can be auto scaled based on usage using custom auto scale, for more details see: <https://docs.microsoft.com/azure/stream-analytics/stream-analytics-autoscale>.
+
+### Azure Anomaly Detection scaling
+
+The template creates only one Anomaly Detector for Univariate Anomaly Detection. The resource is deployed in Free(F0) price tier and is capable of a maximum of 10 API calls per second. If setup requires more than this, then the resource pricing tier needs to be changed to Standard(S0). For more information about quotas and limits, please refer to [Anomaly Detector service quotas and limits](https://learn.microsoft.com/en-us/azure/cognitive-services/anomaly-detector/service-limits)

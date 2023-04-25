@@ -696,7 +696,7 @@
             "inputs": {
               "authentication": "@parameters('DynamicsIdentityAuthentication')",
               "method": "GET",
-              "uri": "@{parameters('EnvironmentUrl')}data/AnomalyDetectionParams"
+              "uri": "@{parameters('EnvironmentUrl')}/data/AnomalyDetectionParams"
             },
             "runAfter": {},
             "type": "Http"
