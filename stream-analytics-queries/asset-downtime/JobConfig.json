@@ -9,16 +9,16 @@
   "CompatibilityLevel": "1.2",
   "UseSystemAssignedIdentity": false,
   "GlobalStorage": {
-      "AccountName": null,
-      "AccountKey": null,
-      "AuthenticationMode": "ConnectionString"
+    "AccountName": null,
+    "AccountKey": null,
+    "AuthenticationMode": "ConnectionString"
   },
   "ContentStoragePolicy": "SystemAccount",
   "CustomCodeStorage": {
-      "AccountName": null,
-      "AccountKey": null,
-      "ContainerName": null,
-      "Path": "UserCustomCode.zip"
+    "AccountName": null,
+    "AccountKey": null,
+    "ContainerName": null,
+    "Path": "UserCustomCode.zip"
   },
   "DataSourceCredentialDomain": null,
   "Tags": {}
