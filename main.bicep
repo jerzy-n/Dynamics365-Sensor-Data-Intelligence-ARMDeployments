@@ -517,14 +517,14 @@ resource univariateAnomalyDetectionJobs 'Microsoft.StreamAnalytics/streamingjobs
     }
     functions: (contains(job, 'udf')) ? [
       {
-        name: 'pointToObject'
+        name: job.udf.udfFuncName
         properties: {
           type: 'Scalar'
           properties: {
             binding : {
               type: 'Microsoft.StreamAnalytics/JavascriptUdf'
               properties: {
-                script: job.udf
+                script: job.udf.udfScript
               }
             }
             inputs: [

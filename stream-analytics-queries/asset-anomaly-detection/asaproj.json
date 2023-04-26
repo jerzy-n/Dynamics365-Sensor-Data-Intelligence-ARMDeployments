@@ -11,12 +11,12 @@
             "subType": "InputMock"
         },
         {
-            "filePath": "Inputs/Local_ScenarioMappings.json",
-            "subType": "InputMock"
-        },
-        {
             "filePath": "Functions/pointToObject.js.json",
             "subType": "JSFunction"
+        },
+        {
+            "filePath": "Inputs/Local_AssetSensorAnomalyParamsReferenceInput.json",
+            "subType": "InputMock"
         }
     ]
 }

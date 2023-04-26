@@ -1,11 +1,11 @@
 {
-    "Name": "ScenarioMappings",
+    "Name": "AssetSensorAnomalyParamsReferenceInput",
     "Type": "Reference data",
     "DataSourceType": "Local Input",
     "Serialization": {
         "Type": "Json",
         "Encoding": "UTF8"
     },
-    "FilePath": "../SampleData/SampleScenarioMappings.json",
+    "FilePath": "../SampleData/SampleAssetSensorAnomalyParamsReferenceInput.json",
     "ScriptType": "InputMock"
 }

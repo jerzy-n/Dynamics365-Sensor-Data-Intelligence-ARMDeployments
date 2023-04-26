@@ -19,29 +19,30 @@
         },
         "type": "Http"
       },
-      "Complete_the_message_in_a_queue": {
-        "inputs": {
-          "host": {
-            "connection": {
-              "name": "@parameters('$connections')['servicebus']['connectionId']"
-            }
-          },
-          "method": "delete",
-          "path": "/@{encodeURIComponent(encodeURIComponent('anomaly-detection-queue'))}/messages/complete",
-          "queries": {
-            "lockToken": "@triggerBody()?['LockToken']",
-            "queueType": "Main"
-          }
-        },
-        "runAfter": {
-          "If_Status_Code_Is_200": [
-            "Succeeded"
-          ]
-        },
-        "type": "ApiConnection"
-      },
       "If_Status_Code_Is_200": {
         "actions": {
+          "Complete_the_message_in_a_queue": {
+            "inputs": {
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['servicebus']['connectionId']"
+                }
+              },
+              "method": "delete",
+              "path": "/@{encodeURIComponent(encodeURIComponent('anomaly-detection-queue'))}/messages/complete",
+              "queries": {
+                "lockToken": "@triggerBody()?['LockToken']",
+                "queueType": "Main",
+                "sessionId": ""
+              }
+            },
+            "runAfter": {
+              "If_Anomaly_Is_Found": [
+                "Succeeded"
+              ]
+            },
+            "type": "ApiConnection"
+          },
           "If_Anomaly_Is_Found": {
             "actions": {
               "Send_message": {
@@ -144,6 +145,28 @@
             },
             "runAfter": {},
             "type": "ParseJson"
+          }
+        },
+        "else": {
+          "actions": {
+            "Abandon_the_message_in_a_queue": {
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['servicebus']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/@{encodeURIComponent(encodeURIComponent('anomaly-detection-queue'))}/messages/abandon",
+                "queries": {
+                  "lockToken": "@triggerBody()?['LockToken']",
+                  "queueType": "Main",
+                  "sessionId": ""
+                }
+              },
+              "runAfter": {},
+              "type": "ApiConnection"
+            }
           }
         },
         "expression": {

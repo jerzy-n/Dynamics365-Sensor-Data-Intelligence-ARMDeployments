@@ -6,21 +6,36 @@ CREATE TABLE IotInput(
 
 CREATE TABLE AssetSensorAnomalyParamsReferenceInput(
     SensorId nvarchar(max),
-    Scenario nvarchar(max),
-    IsSensorActiveForScenario nvarchar(max),
-    Sensitivity float
+    CounterName nvarchar(max),
+    CounterSensitivityValue float,
+    CounterMaxAnomalyRatioValue float,
+    CounterMaxHistoryWindowValue bigint
   );
 
+WITH CombinedData AS (
+  SELECT
+    I.sensorId AS sensorId,
+    I.eventEnqueuedUtcTime AS eventEnqueuedUtcTime,
+    I.value AS value,
+    R.CounterName AS counterName,
+    R.CounterSensitivityValue AS sensitivity,
+    R.CounterMaxHistoryWindowValue AS maxWindow,
+    R.CounterMaxAnomalyRatioValue AS maxAnomalyRatio
+  FROM IotInput I
+  TIMESTAMP BY I.eventEnqueuedUtcTime
+  JOIN AssetSensorAnomalyParamsReferenceInput R ON R.SensorId = I.sensorId
+)
+
 SELECT
-  I.sensorId AS sensorId,
+  C.counterName AS counterName,
+  C.sensorId AS sensorId,
+  C.maxAnomalyRatio AS maxAnomalyRatio,
+  C.sensitivity AS sensitivity,
   System.Timestamp() AS processingTimestamp,
-  Collect(UDF.pointToObject(I.eventEnqueuedUtcTime, I.value)) AS series
+  Collect(UDF.pointToObject(C.eventEnqueuedUtcTime, C.value)) AS series
 INTO AnomalyDetectionOutput
-FROM IotInput I
-TIMESTAMP BY I.eventEnqueuedUtcTime
--- JOIN AssetSensorAnomalyParamsReferenceInput R ON R.SensorId = I.sensorId
--- WHERE R.IsSensorActiveForScenario = 'Yes'
-GROUP BY SlidingWindow(second, 12), I.sensorId
+FROM CombinedData C
+GROUP BY SlidingWindow(second, 12), C.sensorId, C.counterName, C.maxAnomalyRatio, C.sensitivity
 HAVING COUNT() > 12
 
 
