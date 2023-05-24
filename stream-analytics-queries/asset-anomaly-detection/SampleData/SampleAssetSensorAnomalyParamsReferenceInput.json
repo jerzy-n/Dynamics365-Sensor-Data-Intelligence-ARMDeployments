@@ -3,14 +3,14 @@
     "SensorId": "D1",
     "CounterName": "Test",
     "CounterSensitivityValue": 90.0,
-    "CounterMaxAnomalyRatioValue": 0.5,
+    "CounterMaxAnomalyRatioValue": 0.2,
     "CounterMaxHistoryWindowValue": 20
   },
   {
     "SensorId": "D3",
     "CounterName": "Test",
     "CounterSensitivityValue": 90.0,
-    "CounterMaxAnomalyRatioValue": 0.5,
+    "CounterMaxAnomalyRatioValue": 0.3,
     "CounterMaxHistoryWindowValue": 15
   }
 ]

@@ -7,6 +7,9 @@ param existingIotHubResourceGroupName string = ''
 @description('(Optional) Resource name of an Azure IoT Hub to reuse.')
 param existingIotHubName string = ''
 
+@description('(Optional) Set to true to deploy resources for the Anomaly Detection scenario.')
+param deployAnomalyDetectionResources bool = false
+
 #disable-next-line no-loc-expr-outside-params
 var resourcesLocation = resourceGroup().location
 
@@ -76,8 +79,6 @@ var uadStreamScenarioJobs = [
     }
   }
 ]
-
-var deployAnomalyDetectionResources = length(uadStreamScenarioJobs) > 0
 
 var allStreamScenarioJobs = concat(streamScenarioJobs, uadStreamScenarioJobs)
 
