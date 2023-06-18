@@ -64,7 +64,7 @@
             "name": "deployAnomalyDetectoinScenario",
             "type": "Microsoft.Common.CheckBox",
             "label": "Deploy resources for Anomaly Detection scenario for Asset Management",
-            "toolTip": "This scenario uses Azure Cognitive Services to detect anomalies in sensor data and send alerts to Dynamics 365 Supply Chain Management."
+            "toolTip": "This scenario uses Azure Cognitive Services to detect anomalies in sensor data and to send alerts to Dynamics 365 Supply Chain Management."
           }
         ]
       }
