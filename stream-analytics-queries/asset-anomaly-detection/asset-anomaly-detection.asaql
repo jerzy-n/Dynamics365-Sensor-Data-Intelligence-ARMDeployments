@@ -8,8 +8,7 @@ CREATE TABLE AssetSensorAnomalyParamsReferenceInput(
     SensorId nvarchar(max),
     CounterName nvarchar(max),
     CounterSensitivityValue float,
-    CounterMaxAnomalyRatioValue float,
-    CounterMaxHistoryWindowValue bigint
+    CounterMaxAnomalyRatioValue float
   );
 
 WITH CombinedData AS (
@@ -19,7 +18,6 @@ WITH CombinedData AS (
     I.value AS value,
     R.CounterName AS counterName,
     R.CounterSensitivityValue AS sensitivity,
-    R.CounterMaxHistoryWindowValue AS maxWindow,
     R.CounterMaxAnomalyRatioValue AS maxAnomalyRatio
   FROM IotInput I
   TIMESTAMP BY I.eventEnqueuedUtcTime
@@ -39,8 +37,13 @@ SELECT
   C.maxAnomalyRatio AS maxAnomalyRatio,
   C.sensitivity AS sensitivity,
   System.Timestamp() AS processingTimestamp,
+  'AnomalyDetection' AS notificationType,
+  CONCAT('AnomalyDetection:', C.sensorId, ':', C.counterName) AS publishedMetric,
+  'Anomaly Detection' AS publishedMetricDisplayName,
   Collect(UDF.pointToObject(C.eventEnqueuedUtcTime, C.value)) AS series
 INTO AnomalyDetectionOutput
 FROM CombinedData C
-GROUP BY SlidingWindow(second, 12), C.sensorId, C.counterName, C.maxAnomalyRatio, C.sensitivity
+/** Keep SlidingWidnow window size 1000 as default.
+    Customer should configure the below according to their preference. */
+GROUP BY SlidingWindow(second, 1000), C.sensorId, C.counterName, C.maxAnomalyRatio, C.sensitivity
 HAVING COUNT() > 12

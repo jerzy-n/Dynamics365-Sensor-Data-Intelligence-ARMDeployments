@@ -1,0 +1,36 @@
+{
+  "Script": "../asset-anomaly-detection.asaql",
+  "TestCases": [
+    {
+      "Name": "SimpleAnomalyDetectionCase",
+      "Inputs": [
+        {
+          "InputAlias": "AssetSensorMonitorThresholdsReferenceInput",
+          "Type": "Reference data",
+          "Format": "Json",
+          "FilePath": "SimpleAnomalyDetectionCase/AssetSensorAnomalyParamsReferenceInput.json",
+          "ScriptType": "InputMock"
+        },
+        {
+          "InputAlias": "IotInput",
+          "Type": "Data Stream",
+          "Format": "Json",
+          "FilePath": "SimpleAnomalyDetectionCase/IotInput.json",
+          "ScriptType": "InputMock"
+        }
+      ],
+      "ExpectedOutputs": [
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "SimpleAnomalyDetectionCase/ExpectedMetricOutput.json",
+          "Required": true
+        },
+        {
+          "OutputAlias": "NotificationOutput",
+          "FilePath": "SimpleAnomalyDetectionCase/ExpectedNotificationOutput.json",
+          "Required": true
+        }
+      ]
+    }
+  ]
+}
