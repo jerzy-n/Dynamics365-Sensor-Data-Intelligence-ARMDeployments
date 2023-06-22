@@ -15,6 +15,7 @@ param(
         'asset-downtime',
         'asset-maintenance',
         'asset-monitor',
+        'asset-anomaly-detection',
         'machine-reporting-status',
         'product-quality-validation',
         'production-job-delayed'
@@ -61,11 +62,19 @@ function New-StreamAnalyticsTestConfig($Scenario) {
             FilePath    = "$testName/ExpectedMetricOutput.json"
             Required    = Test-Path "$testCase/ExpectedMetricOutput.json"
         }
-
-        $currentTestCase.ExpectedOutputs += [ordered] @{
-            OutputAlias = "NotificationOutput"
-            FilePath    = "$testName/ExpectedNotificationOutput.json"
-            Required    = Test-Path "$testCase/ExpectedNotificationOutput.json"
+        
+        if ($Scenario -eq 'asset-anomaly-detection') {
+            $currentTestCase.ExpectedOutputs += [ordered] @{
+                OutputAlias = "AnomalyDetectionOutput"
+                FilePath    = "$testName/ExpectedAnomalyDetectionOutput.json"
+                Required    = Test-Path "$testCase/ExpectedAnomalyDetectionOutput.json"
+            }
+        } else {
+            $currentTestCase.ExpectedOutputs += [ordered] @{
+                OutputAlias = "NotificationOutput"
+                FilePath    = "$testName/ExpectedNotificationOutput.json"
+                Required    = Test-Path "$testCase/ExpectedNotificationOutput.json"
+            }
         }
 
         $testConfig.TestCases += $currentTestCase

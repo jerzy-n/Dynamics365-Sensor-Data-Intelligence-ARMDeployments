@@ -15,6 +15,7 @@ param(
         'asset-downtime',
         'asset-maintenance',
         'asset-monitor',
+        'asset-anomaly-detection',
         'machine-reporting-status',
         'product-quality-validation',
         'production-job-delayed'
@@ -41,8 +42,16 @@ function Assert-ExpectedNotificationsContainRequiredProperties($TestConfigPath) 
         'timestamp'
         'notificationType'
     )
-
     $projectDirectory = Resolve-Path "$TestConfigPath/../../"
+
+    $scenario = Split-Path $projectDirectory -Leaf
+    if ($scenario -eq 'asset-anomaly-detection') {
+        $requiredProperties = @(
+        'series'
+        'notificationType'
+        'processingTimestamp'
+    )
+    }
 
     $expectedNotificationOutputPaths = Get-ChildItem -Path "$projectDirectory/Test/*/ExpectedNotificationOutput.json"
 
