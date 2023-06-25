@@ -7,7 +7,7 @@ CREATE TABLE IotInput(
 CREATE TABLE AssetSensorAnomalyParamsReferenceInput(
     SensorId nvarchar(max),
     CounterName nvarchar(max),
-    CounterSensitivityValue float,
+    CounterSensitivityValue bigint,
     CounterMaxAnomalyRatioValue float
   );
 
@@ -36,7 +36,7 @@ SELECT
   C.sensorId AS sensorId,
   C.maxAnomalyRatio AS maxAnomalyRatio,
   C.sensitivity AS sensitivity,
-  System.Timestamp() AS processingTimestamp,
+  System.Timestamp() AS timestamp,
   'AnomalyDetection' AS notificationType,
   CONCAT('AnomalyDetection:', C.sensorId, ':', C.counterName) AS publishedMetric,
   'Anomaly Detection' AS publishedMetricDisplayName,

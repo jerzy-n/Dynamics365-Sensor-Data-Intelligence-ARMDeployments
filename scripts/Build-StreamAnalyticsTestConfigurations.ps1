@@ -62,18 +62,22 @@ function New-StreamAnalyticsTestConfig($Scenario) {
             FilePath    = "$testName/ExpectedMetricOutput.json"
             Required    = Test-Path "$testCase/ExpectedMetricOutput.json"
         }
-        
-        if ($Scenario -eq 'asset-anomaly-detection') {
+
+        $currentTestCase.ExpectedOutputs += [ordered] @{
+            OutputAlias = "NotificationOutput"
+            FilePath    = "$testName/ExpectedNotificationOutput.json"
+            Required    = Test-Path "$testCase/ExpectedNotificationOutput.json"
+        }
+
+        $expectedOutputPaths = Get-ChildItem -Path "$testCase/Expected*.json" | Where-Object { $_.Name -ne "ExpectedMetricOutput.json" -and $_.Name -ne "ExpectedNotificationOutput.json" }
+
+        foreach ($expectedOutputPath in $expectedOutputPaths) {
+            $expectedOutputName = $expectedOutputPath.Name.Replace("Expected", "").Replace(".json", "")
+            $fileName = $expectedOutputPath.Name
             $currentTestCase.ExpectedOutputs += [ordered] @{
-                OutputAlias = "AnomalyDetectionOutput"
-                FilePath    = "$testName/ExpectedAnomalyDetectionOutput.json"
-                Required    = Test-Path "$testCase/ExpectedAnomalyDetectionOutput.json"
-            }
-        } else {
-            $currentTestCase.ExpectedOutputs += [ordered] @{
-                OutputAlias = "NotificationOutput"
-                FilePath    = "$testName/ExpectedNotificationOutput.json"
-                Required    = Test-Path "$testCase/ExpectedNotificationOutput.json"
+                OutputAlias = $expectedOutputName
+                FilePath    = "$testName/$fileName"
+                Required    = Test-Path "$testCase/$fileName"
             }
         }
 

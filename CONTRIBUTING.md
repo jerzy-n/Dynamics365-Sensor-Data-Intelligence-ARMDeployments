@@ -76,7 +76,7 @@ Run the script [`Invoke-StreamAnalyticsTests.ps1`](./scripts/Invoke-StreamAnalyt
 #### Add a new test case
 
 New test cases can be added by creating a new folder inside the "Test" folder of the scenario to be tested. The name of the folder will be the name of the test. Add json files that fit the names of the inputs to the stream.
-Also add a file with the name "ExpectedMetricOutput.json" and/or "ExpectedNotificationOutput.json", depending on the test. The "testConfig.json" in the "Test" folder file will be automatically updated when the tests are run.
+Also add a file with the name "ExpectedMetricOutput.json" and/or "ExpectedNotificationOutput.json", depending on the test. Other files with expected output should follow the name structure "Expected*.json". The "testConfig.json" in the "Test" folder file will be automatically updated when the tests are run.
 Any manual changes to it will be overwritten!
 
 ## Working on Bicep template

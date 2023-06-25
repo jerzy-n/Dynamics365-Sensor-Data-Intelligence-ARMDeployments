@@ -42,16 +42,8 @@ function Assert-ExpectedNotificationsContainRequiredProperties($TestConfigPath) 
         'timestamp'
         'notificationType'
     )
-    $projectDirectory = Resolve-Path "$TestConfigPath/../../"
 
-    $scenario = Split-Path $projectDirectory -Leaf
-    if ($scenario -eq 'asset-anomaly-detection') {
-        $requiredProperties = @(
-        'series'
-        'notificationType'
-        'processingTimestamp'
-    )
-    }
+    $projectDirectory = Resolve-Path "$TestConfigPath/../../"
 
     $expectedNotificationOutputPaths = Get-ChildItem -Path "$projectDirectory/Test/*/ExpectedNotificationOutput.json"
 
