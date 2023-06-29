@@ -1,0 +1,14 @@
+[
+  {
+    "SensorId": "D1",
+    "CounterName": "Temperature - °C",
+    "CounterSensitivityValue": 90,
+    "CounterMaxAnomalyRatioValue": 0.2
+  },
+  {
+    "SensorId": "D3",
+    "CounterName": "Temperature - °C",
+    "CounterSensitivityValue": 90,
+    "CounterMaxAnomalyRatioValue": 0.3
+  }
+]

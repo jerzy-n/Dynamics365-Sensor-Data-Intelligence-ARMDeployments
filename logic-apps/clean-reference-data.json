@@ -38,6 +38,18 @@
         "runAfter": {},
         "type": "InitializeVariable"
       },
+      "AssetUnivariateAnomalyDetectionRefDataBlobs": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "assetUnivariateAnomalyDetectionRefDataBlobs",
+              "type": "array"
+            }
+          ]
+        },
+        "runAfter": {},
+        "type": "InitializeVariable"
+      },
       "CleanupAssetMaintenanceRefDataBlobs": {
         "inputs": {
           "variables": [
@@ -84,6 +96,23 @@
         },
         "runAfter": {
           "LatestAssetSensorMonitorThresholdsRefDataPointer": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
+      "CleanupAssetUnivariateAnomalyDetectionRefDataBlobs": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "cleanupAssetUnivariateAnomalyDetectionRefDataBlobs",
+              "type": "boolean",
+              "value": "@true"
+            }
+          ]
+        },
+        "runAfter": {
+          "LatestAssetUnivariateAnomalyDetectionRefDataPointer": [
             "Succeeded"
           ]
         },
@@ -195,6 +224,26 @@
         },
         "runAfter": {
           "SetAssetSensorMonitorThresholdsRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
+      "GetLatestAssetUnivariateAnomalyDetectionRefDataPointer": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files/@{encodeURIComponent(encodeURIComponent('sensorintelligencereferencedata/scenarios/assetunivariateanomalydetection.json'))}/content",
+          "queries": {
+            "inferContentType": true
+          }
+        },
+        "runAfter": {
+          "SetAssetUnivariateAnomalyDetectionRefDataBlobs": [
             "Succeeded"
           ]
         },
@@ -488,6 +537,82 @@
         },
         "type": "If"
       },
+      "IfCleanupAssetUnivariateAnomalyDetectionRefDataBlobs": {
+        "actions": {
+          "AssetUnivariateAnomalyDetectionRefDataCleanupLoop": {
+            "actions": {
+              "IfAssetAnomalyUnivariateAnomalyDetectionRefDataNeedsToBeDeleted": {
+                "actions": {
+                  "Delete_blob_(V2)": {
+                    "inputs": {
+                      "headers": {
+                        "SkipDeleteIfFileNotFoundOnServer": false
+                      },
+                      "host": {
+                        "connection": {
+                          "name": "@parameters('$connections')['azureblob']['connectionId']"
+                        }
+                      },
+                      "method": "delete",
+                      "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/files/@{encodeURIComponent(encodeURIComponent(items('AssetUnivariateAnomalyDetectionRefDataCleanupLoop')?['Path']))}"
+                    },
+                    "runAfter": {},
+                    "type": "ApiConnection"
+                  }
+                },
+                "expression": {
+                  "and": [
+                    {
+                      "less": [
+                        "@items('AssetUnivariateAnomalyDetectionRefDataCleanupLoop')?['LastModified']",
+                        "@subtractFromTime(utcNow(), 7, 'Day')"
+                      ]
+                    },
+                    {
+                      "not": {
+                        "equals": [
+                          "@items('AssetUnivariateAnomalyDetectionRefDataCleanupLoop')?['Path']",
+                          "@variables('latestAssetUnivariateAnomalyDetectionRefDataPointer')"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "runAfter": {},
+                "type": "If"
+              }
+            },
+            "foreach": "@variables('assetUnivariateAnomalyDetectionRefDataBlobs')",
+            "runAfter": {},
+            "type": "Foreach"
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@variables('cleanupAssetUnivariateAnomalyDetectionRefDataBlobs')",
+                "@true"
+              ]
+            }
+          ]
+        },
+        "runAfter": {
+          "SetCleanupAssetUADRefDataBlobsToFalseBecauseNoRefDataBlobExists": [
+            "Succeeded",
+            "Skipped"
+          ],
+          "SetCleanupAssetUADRefDataToFalseBecauseLatestRefDataPointerDoesNotExist": [
+            "Succeeded",
+            "Skipped"
+          ],
+          "SetLatestAssetUnivariateAnomalyDetectionRefDataPointer": [
+            "Succeeded",
+            "Skipped"
+          ]
+        },
+        "type": "If"
+      },
       "IfCleanupSensorItemBatchAttributeMappingsRefDataBlobs": {
         "actions": {
           "SensorJobItemBatchAttributeMappingCleanupLoop": {
@@ -764,6 +889,22 @@
         },
         "type": "InitializeVariable"
       },
+      "LatestAssetUnivariateAnomalyDetectionRefDataPointer": {
+        "inputs": {
+          "variables": [
+            {
+              "name": "latestAssetUnivariateAnomalyDetectionRefDataPointer",
+              "type": "string"
+            }
+          ]
+        },
+        "runAfter": {
+          "AssetUnivariateAnomalyDetectionRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "InitializeVariable"
+      },
       "LatestSensorJobExecutionsRefDataPointer": {
         "inputs": {
           "variables": [
@@ -875,6 +1016,27 @@
         },
         "type": "ApiConnection"
       },
+      "ListAllAssetUnivariateAnomalyDetectionRefDataBlobs": {
+        "inputs": {
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azureblob']['connectionId']"
+            }
+          },
+          "method": "get",
+          "path": "/v2/datasets/@{encodeURIComponent(encodeURIComponent(parameters('StorageAccountName')))}/foldersV2/@{encodeURIComponent(encodeURIComponent('/sensorintelligencereferencedata/assetunivariateanomalydetectionparams'))}",
+          "queries": {
+            "nextPageMarker": "",
+            "useFlatListing": false
+          }
+        },
+        "runAfter": {
+          "CleanupAssetUnivariateAnomalyDetectionRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "ApiConnection"
+      },
       "ListAllSensorJobExecutionsRefDataBlobs": {
         "inputs": {
           "host": {
@@ -974,6 +1136,54 @@
         "runAfter": {},
         "type": "InitializeVariable"
       },
+      "SetAssetMaintenanceRefDataBlobs": {
+        "inputs": {
+          "name": "assetMaintenanceRefDataBlobs",
+          "value": "@body('ListAllAssetMaintenanceRefDataBlobs')?['value']"
+        },
+        "runAfter": {
+          "ListAllAssetMaintenanceRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetAssetSensorDowntimeThresholdsRefDataBlobs": {
+        "inputs": {
+          "name": "assetSensorDowntimeThresholdsRefDataBlobs",
+          "value": "@body('ListAllAssetSensorDowntimeThresholdsRefDataBlobs')?['value']"
+        },
+        "runAfter": {
+          "ListAllAssetSensorDowntimeThresholdsRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetAssetSensorMonitorThresholdsRefDataBlobs": {
+        "inputs": {
+          "name": "assetSensorMonitorThresholdsRefDataBlobs",
+          "value": "@body('ListAllAssetSensorMonitorThresholdsRefDataBlobs')?['value']"
+        },
+        "runAfter": {
+          "ListAllAssetSensorMonitorThresholdsRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetAssetUnivariateAnomalyDetectionRefDataBlobs": {
+        "inputs": {
+          "name": "assetUnivariateAnomalyDetectionRefDataBlobs",
+          "value": "@body('ListAllAssetUnivariateAnomalyDetectionRefDataBlobs')?['value']"
+        },
+        "runAfter": {
+          "ListAllAssetUnivariateAnomalyDetectionRefDataBlobs": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
       "SetCleanupAssetDowntimeRefDataBlobsToFalseBecauseNoRefDataBlobExists": {
         "inputs": {
           "name": "cleanupAssetSensorDowntimeThresholdsRefDataBlobs",
@@ -1041,6 +1251,30 @@
         },
         "runAfter": {
           "GetLatestAssetSensorMonitorThresholdsRefDataPointer": [
+            "Failed"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetCleanupAssetUADRefDataBlobsToFalseBecauseNoRefDataBlobExists": {
+        "inputs": {
+          "name": "cleanupAssetUnivariateAnomalyDetectionRefDataBlobs",
+          "value": "@false"
+        },
+        "runAfter": {
+          "ListAllAssetUnivariateAnomalyDetectionRefDataBlobs": [
+            "Failed"
+          ]
+        },
+        "type": "SetVariable"
+      },
+      "SetCleanupAssetUADRefDataToFalseBecauseLatestRefDataPointerDoesNotExist": {
+        "inputs": {
+          "name": "cleanupAssetUnivariateAnomalyDetectionRefDataBlobs",
+          "value": "@false"
+        },
+        "runAfter": {
+          "GetLatestAssetUnivariateAnomalyDetectionRefDataPointer": [
             "Failed"
           ]
         },
@@ -1154,6 +1388,18 @@
         },
         "type": "SetVariable"
       },
+      "SetLatestAssetUnivariateAnomalyDetectionRefDataPointer": {
+        "inputs": {
+          "name": "latestAssetUnivariateAnomalyDetectionRefDataPointer",
+          "value": "@{body('GetLatestAssetUnivariateAnomalyDetectionRefDataPointer')}"
+        },
+        "runAfter": {
+          "GetLatestAssetUnivariateAnomalyDetectionRefDataPointer": [
+            "Succeeded"
+          ]
+        },
+        "type": "SetVariable"
+      },
       "SetLatestSensorJobExecutionsRefDataPointer": {
         "inputs": {
           "name": "latestSensorJobExecutionsRefDataPointer",
@@ -1185,42 +1431,6 @@
         },
         "runAfter": {
           "GetLatestSensorJobsRefDataPointer": [
-            "Succeeded"
-          ]
-        },
-        "type": "SetVariable"
-      },
-      "SetAssetSensorDowntimeThresholdsRefDataBlobs": {
-        "inputs": {
-          "name": "assetSensorDowntimeThresholdsRefDataBlobs",
-          "value": "@body('ListAllAssetSensorDowntimeThresholdsRefDataBlobs')?['value']"
-        },
-        "runAfter": {
-          "ListAllAssetSensorDowntimeThresholdsRefDataBlobs": [
-            "Succeeded"
-          ]
-        },
-        "type": "SetVariable"
-      },
-      "SetAssetMaintenanceRefDataBlobs": {
-        "inputs": {
-          "name": "assetMaintenanceRefDataBlobs",
-          "value": "@body('ListAllAssetMaintenanceRefDataBlobs')?['value']"
-        },
-        "runAfter": {
-          "ListAllAssetMaintenanceRefDataBlobs": [
-            "Succeeded"
-          ]
-        },
-        "type": "SetVariable"
-      },
-      "SetAssetSensorMonitorThresholdsRefDataBlobs": {
-        "inputs": {
-          "name": "assetSensorMonitorThresholdsRefDataBlobs",
-          "value": "@body('ListAllAssetSensorMonitorThresholdsRefDataBlobs')?['value']"
-        },
-        "runAfter": {
-          "ListAllAssetSensorMonitorThresholdsRefDataBlobs": [
             "Succeeded"
           ]
         },

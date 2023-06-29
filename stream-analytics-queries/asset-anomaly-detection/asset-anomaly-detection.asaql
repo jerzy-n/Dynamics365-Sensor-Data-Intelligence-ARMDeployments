@@ -1,0 +1,49 @@
+CREATE TABLE IotInput(
+    eventEnqueuedUtcTime datetime,
+    sensorId nvarchar(max),
+    value float
+  );
+
+CREATE TABLE AssetSensorAnomalyParamsReferenceInput(
+    SensorId nvarchar(max),
+    CounterName nvarchar(max),
+    CounterSensitivityValue bigint,
+    CounterMaxAnomalyRatioValue float
+  );
+
+WITH CombinedData AS (
+  SELECT
+    I.sensorId AS sensorId,
+    I.eventEnqueuedUtcTime AS eventEnqueuedUtcTime,
+    I.value AS value,
+    R.CounterName AS counterName,
+    R.CounterSensitivityValue AS sensitivity,
+    R.CounterMaxAnomalyRatioValue AS maxAnomalyRatio
+  FROM IotInput I
+  TIMESTAMP BY I.eventEnqueuedUtcTime
+  JOIN AssetSensorAnomalyParamsReferenceInput R ON R.SensorId = I.sensorId
+)
+
+SELECT
+  CONCAT('AnomalyDetection:', sensorId, ':', counterName) AS metricKey,
+  DATEDIFF(millisecond, CAST('1970-01-01' as datetime), eventEnqueuedUtcTime) AS uts,
+  value AS val
+INTO MetricOutput
+from CombinedData
+
+SELECT
+  C.counterName AS counterName,
+  C.sensorId AS sensorId,
+  C.maxAnomalyRatio AS maxAnomalyRatio,
+  C.sensitivity AS sensitivity,
+  System.Timestamp() AS timestamp,
+  'AnomalyDetection' AS notificationType,
+  CONCAT('AnomalyDetection:', C.sensorId, ':', C.counterName) AS publishedMetric,
+  'Anomaly Detection' AS publishedMetricDisplayName,
+  Collect(UDF.pointToObject(C.eventEnqueuedUtcTime, C.value)) AS series
+INTO AnomalyDetectionOutput
+FROM CombinedData C
+/** Keep SlidingWidnow window size 1000 as default.
+    Customer should configure the below according to their preference. */
+GROUP BY SlidingWindow(second, 1000), C.sensorId, C.counterName, C.maxAnomalyRatio, C.sensitivity
+HAVING COUNT() > 12

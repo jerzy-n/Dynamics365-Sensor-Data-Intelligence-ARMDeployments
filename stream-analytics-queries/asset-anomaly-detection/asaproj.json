@@ -1,0 +1,22 @@
+{
+    "name": "asset-anomaly-detection",
+    "startFile": "asset-anomaly-detection.asaql",
+    "configurations": [
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        },
+        {
+            "filePath": "Inputs/Local_IotInput.json",
+            "subType": "InputMock"
+        },
+        {
+            "filePath": "Functions/pointToObject.js.json",
+            "subType": "JSFunction"
+        },
+        {
+            "filePath": "Inputs/Local_AssetSensorAnomalyParamsReferenceInput.json",
+            "subType": "InputMock"
+        }
+    ]
+}

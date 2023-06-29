@@ -15,6 +15,7 @@ param(
         'asset-downtime',
         'asset-maintenance',
         'asset-monitor',
+        'asset-anomaly-detection',
         'machine-reporting-status',
         'product-quality-validation',
         'production-job-delayed'

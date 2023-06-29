@@ -59,6 +59,12 @@
                 "location": "onBasics"
               }
             }
+          },
+          {
+            "name": "deployAnomalyDetectoinScenario",
+            "type": "Microsoft.Common.CheckBox",
+            "label": "Deploy resources for Anomaly Detection scenario for Asset Management",
+            "toolTip": "This scenario uses Azure Cognitive Services to detect anomalies in sensor data and to send alerts to Dynamics 365 Supply Chain Management."
           }
         ]
       }
@@ -67,7 +73,8 @@
     "outputs": {
       "supplyChainManagementEnvironmentURL": "[basics('mainSection').supplyChainManagementEnvironmentURL]",
       "existingIotHubResourceGroupName": "[first(skip(split(basics('mainSection').existingIotHubSelector.id, '/'), 4))]",
-      "existingIotHubName": "[basics('mainSection').existingIotHubSelector.name]"
+      "existingIotHubName": "[basics('mainSection').existingIotHubSelector.name]",
+      "deployAnomalyDetectionResources": "[basics('mainSection').deployAnomalyDetectoinScenario]"
     }
   }
 }

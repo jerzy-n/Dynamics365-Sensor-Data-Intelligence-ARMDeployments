@@ -21,14 +21,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "ActiveMachineInputSendsMetrics/ExpectedMetricOutput.json",
-          "Required": true
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "ActiveMachineInputSendsMetrics/ExpectedNotificationOutput.json",
           "Required": false
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "ActiveMachineInputSendsMetrics/ExpectedMetricOutput.json",
+          "Required": true
         }
       ]
     },
@@ -52,14 +52,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "ActiveMachineNoInputSendsMetrics/ExpectedMetricOutput.json",
-          "Required": true
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "ActiveMachineNoInputSendsMetrics/ExpectedNotificationOutput.json",
           "Required": false
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "ActiveMachineNoInputSendsMetrics/ExpectedMetricOutput.json",
+          "Required": true
         }
       ]
     },
@@ -83,14 +83,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "ComplexNotificationCase/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "ComplexNotificationCase/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "ComplexNotificationCase/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -114,14 +114,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "InactiveMachineDoesNotSendNotification/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "InactiveMachineDoesNotSendNotification/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "InactiveMachineDoesNotSendNotification/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -145,14 +145,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "InactiveMachineInputSendsMetrics/ExpectedMetricOutput.json",
-          "Required": true
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "InactiveMachineInputSendsMetrics/ExpectedNotificationOutput.json",
           "Required": false
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "InactiveMachineInputSendsMetrics/ExpectedMetricOutput.json",
+          "Required": true
         }
       ]
     },
@@ -176,14 +176,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "InactiveMachineNoInputSendsMetrics/ExpectedMetricOutput.json",
-          "Required": true
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "InactiveMachineNoInputSendsMetrics/ExpectedNotificationOutput.json",
           "Required": false
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "InactiveMachineNoInputSendsMetrics/ExpectedMetricOutput.json",
+          "Required": true
         }
       ]
     },
@@ -207,14 +207,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "MachineDelayedUpSendsNotification/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "MachineDelayedUpSendsNotification/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "MachineDelayedUpSendsNotification/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -238,14 +238,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "MachineDownForLessThanThresholdDoesNotSendNotification/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "MachineDownForLessThanThresholdDoesNotSendNotification/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "MachineDownForLessThanThresholdDoesNotSendNotification/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -269,14 +269,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "MachineDownSendsNotification/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "MachineDownSendsNotification/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "MachineDownSendsNotification/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -300,14 +300,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "MachineDownUpSendsNotification/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "MachineDownUpSendsNotification/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "MachineDownUpSendsNotification/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -331,13 +331,13 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "MissingFieldsAreSkipped/ExpectedMetricOutput.json",
+          "OutputAlias": "NotificationOutput",
+          "FilePath": "MissingFieldsAreSkipped/ExpectedNotificationOutput.json",
           "Required": true
         },
         {
-          "OutputAlias": "NotificationOutput",
-          "FilePath": "MissingFieldsAreSkipped/ExpectedNotificationOutput.json",
+          "OutputAlias": "MetricOutput",
+          "FilePath": "MissingFieldsAreSkipped/ExpectedMetricOutput.json",
           "Required": true
         }
       ]
@@ -362,14 +362,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "ThresholdOneAlwaysNotify/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "ThresholdOneAlwaysNotify/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "ThresholdOneAlwaysNotify/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     },
@@ -393,14 +393,14 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "ThresholdZeroNoNotifications/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "ThresholdZeroNoNotifications/ExpectedNotificationOutput.json",
           "Required": true
+        },
+        {
+          "OutputAlias": "MetricOutput",
+          "FilePath": "ThresholdZeroNoNotifications/ExpectedMetricOutput.json",
+          "Required": false
         }
       ]
     }

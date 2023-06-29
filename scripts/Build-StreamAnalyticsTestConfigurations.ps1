@@ -15,6 +15,7 @@ param(
         'asset-downtime',
         'asset-maintenance',
         'asset-monitor',
+        'asset-anomaly-detection',
         'machine-reporting-status',
         'product-quality-validation',
         'production-job-delayed'
@@ -37,6 +38,9 @@ function New-StreamAnalyticsTestConfig($Scenario) {
         TestCases = @()
     }
 
+    $scenarioQuery = Get-Content -Raw -Path "$scenarioDirectory/$Scenario.asaql"
+    $outputAliases = $scenarioQuery | Select-String -Pattern '(?<=INTO\s)(\w+)' -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Value }
+
     foreach ($testCase in (Get-ChildItem -Path "$scenarioDirectory/Test/*" -Directory)) {
         $testName = $testCase.Name
         $currentTestCase = [ordered] @{
@@ -56,16 +60,12 @@ function New-StreamAnalyticsTestConfig($Scenario) {
             }
         }
 
-        $currentTestCase.ExpectedOutputs += [ordered] @{
-            OutputAlias = "MetricOutput"
-            FilePath    = "$testName/ExpectedMetricOutput.json"
-            Required    = Test-Path "$testCase/ExpectedMetricOutput.json"
-        }
-
-        $currentTestCase.ExpectedOutputs += [ordered] @{
-            OutputAlias = "NotificationOutput"
-            FilePath    = "$testName/ExpectedNotificationOutput.json"
-            Required    = Test-Path "$testCase/ExpectedNotificationOutput.json"
+        foreach ($outputAlias in $outputAliases) {
+            $currentTestCase.ExpectedOutputs += [ordered] @{
+                OutputAlias = $outputAlias
+                FilePath    = "$testName/Expected$outputAlias.json"
+                Required    = Test-Path "$testCase/Expected$outputAlias.json"
+            }
         }
 
         $testConfig.TestCases += $currentTestCase
