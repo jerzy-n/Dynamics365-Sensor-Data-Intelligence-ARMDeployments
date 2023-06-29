@@ -21,11 +21,6 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "ActiveSensorSendsCount/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "ActiveSensorSendsCount/ExpectedNotificationOutput.json",
           "Required": true
@@ -51,11 +46,6 @@
         }
       ],
       "ExpectedOutputs": [
-        {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "DifferentScenarioSensorDoesNotSendCount/ExpectedMetricOutput.json",
-          "Required": false
-        },
         {
           "OutputAlias": "NotificationOutput",
           "FilePath": "DifferentScenarioSensorDoesNotSendCount/ExpectedNotificationOutput.json",
@@ -83,11 +73,6 @@
       ],
       "ExpectedOutputs": [
         {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "InactiveSensorDoesNotSendCount/ExpectedMetricOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "NotificationOutput",
           "FilePath": "InactiveSensorDoesNotSendCount/ExpectedNotificationOutput.json",
           "Required": true
@@ -113,11 +98,6 @@
         }
       ],
       "ExpectedOutputs": [
-        {
-          "OutputAlias": "MetricOutput",
-          "FilePath": "InvalidInputIsSkipped/ExpectedMetricOutput.json",
-          "Required": false
-        },
         {
           "OutputAlias": "NotificationOutput",
           "FilePath": "InvalidInputIsSkipped/ExpectedNotificationOutput.json",

@@ -26,11 +26,6 @@
           "Required": true
         },
         {
-          "OutputAlias": "NotificationOutput",
-          "FilePath": "SimpleAnomalyDetectionCase/ExpectedNotificationOutput.json",
-          "Required": false
-        },
-        {
           "OutputAlias": "AnomalyDetectionOutput",
           "FilePath": "SimpleAnomalyDetectionCase/ExpectedAnomalyDetectionOutput.json",
           "Required": true
